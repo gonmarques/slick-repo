@@ -14,7 +14,7 @@ class EntityTest extends FlatSpec with Matchers {
 
   it should "not equal another entity if id is same and class is different" in {
     val entity = Person(Some(1), "name")
-    val other = Car(Some(1), "other")
+    val other = Car(Some(1), "other", 1)
     entity should not equal (other)
   }
 
