@@ -15,12 +15,12 @@ import com.byteslounge.slickrepo.domain.Persons
 
 class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
-  /*"The Repository" should "create an entity" in {
+  "The Repository" should "create an entity" in {
     val person = Person(Option.empty, "john");
     val repository = new PersonRepository;
     val id: Int = executeAction(repository.save(person))
-    id should equal (9)
-  }*/
+    id should be > 0
+  }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
