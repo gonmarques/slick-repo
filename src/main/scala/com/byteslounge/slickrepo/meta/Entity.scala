@@ -2,7 +2,7 @@ package com.byteslounge.slickrepo.meta
 
 import com.byteslounge.slickrepo.utils.ClassUtils.sameClass
 
-class Entity[ID](val id: Option[ID] = None) {
+abstract class Entity[ID](val id: Option[ID] = None) {
 
   override def equals(obj: Any): Boolean = {
     obj match {
