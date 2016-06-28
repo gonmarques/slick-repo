@@ -6,15 +6,13 @@ import slick.ast.BaseTypedType
 import com.byteslounge.slickrepo.meta.Entity
 import slick.profile.RelationalProfile
 
-abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID]](val driver: JdbcProfile) {
+abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
 
   import driver.api._
 
   def pkType: BaseTypedType[ID]
   implicit lazy val _pkType: BaseTypedType[ID] = pkType
-
-  type TableType <: RelationalProfile#Table[T] with K
-  def tableQuery: TableQuery[TableType]
+  def tableQuery: TableQuery[K]
 
   def findOne(id: ID): DBIO[T] = {
     tableQuery.filter(_.id === id).result.head

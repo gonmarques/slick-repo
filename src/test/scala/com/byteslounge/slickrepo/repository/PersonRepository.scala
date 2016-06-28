@@ -7,9 +7,6 @@ import com.byteslounge.slickrepo.domain.Person
 import com.byteslounge.slickrepo.domain.Persons
 
 class PersonRepository extends Repository[Person, Int, Persons](H2Driver) {
-
-  type TableType = Persons
   val pkType = implicitly[BaseTypedType[Int]]
-  val tableQuery = TableQuery[TableType]
-
+  val tableQuery = TableQuery[Persons]
 }
