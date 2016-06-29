@@ -16,6 +16,7 @@ import com.byteslounge.slickrepo.domain.Persons
 import com.byteslounge.slickrepo.domain.Cars
 import com.byteslounge.slickrepo.domain.Coffees
 import com.byteslounge.slickrepo.domain.Coffee
+import java.sql.SQLException
 
 class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
@@ -126,7 +127,34 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     val readCoffee2: Coffee = executeAction(coffeeRepository.findOne(2))
     coffeeCount should equal(2)
     readCoffee1.id.get should equal(1)
+    readCoffee1.brand should equal("Some Coffee")
     readCoffee2.id.get should equal(2)
+    readCoffee2.brand should equal("Some Coffee2")
+  }
+
+  it should "rollback a transaction" in {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val coffee = Coffee(Option(1), "Some Coffee")
+    executeAction(coffeeRepository.saveWithId(coffee))
+
+    var work = (for {
+      _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Some Coffee2"))
+      _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Duplicated ID"))
+    } yield ())
+
+    try {
+      executeAction(coffeeRepository.executeTransactionally(work))
+    } catch {
+      case sqle: SQLException if (sqle.getErrorCode == 23505) =>
+      case e: Exception                                       => fail
+    }
+
+    val cofeeCount: Int = executeAction(coffeeRepository.count())
+    cofeeCount should equal(1)
+    val readCoffee: Coffee = executeAction(coffeeRepository.findOne(1))
+    readCoffee.id.get should equal(1)
   }
 
   it should "count entities" in {
