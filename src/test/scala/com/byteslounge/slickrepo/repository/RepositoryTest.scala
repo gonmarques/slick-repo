@@ -164,6 +164,18 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     count should equal(2)
   }
 
+  it should "execute custom queries" in {
+    val idPerson1: Int = executeAction(personRepository.save(Person(None, "john")))
+    val idPerson2: Int = executeAction(personRepository.save(Person(None, "smith")))
+    val idCar1: Int = executeAction(carRepository.save(Car(None, "Benz", idPerson1)))
+    val idCar2: Int = executeAction(carRepository.save(Car(None, "Chevrolet", idPerson1)))
+    val idCar3: Int = executeAction(carRepository.save(Car(None, "Toyota", idPerson2)))
+    val result: Seq[(Person, Car)] = executeAction(personRepository.findWithCarsOrderByIdAscAndCarIdDesc())
+    result.size should equal(3)
+    val resultIds: Seq[(Int, Int)] = result.map { case (p, c) => (p.id.get, c.id.get) }
+    resultIds should equal(Seq((idPerson1, idCar2), (idPerson1, idCar1), (idPerson2, idCar3)))
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }
