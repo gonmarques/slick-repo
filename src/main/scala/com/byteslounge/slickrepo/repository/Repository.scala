@@ -18,6 +18,10 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
     tableQuery.filter(_.id === id).result.head
   }
 
+  def searchOne(id: ID): DBIO[Option[T]] = {
+    tableQuery.filter(_.id === id).result.headOption
+  }
+
   def save(entity: T): DBIO[ID] = {
     tableQuery returning tableQuery.map(_.id) += entity
   }

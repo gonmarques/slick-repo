@@ -37,7 +37,7 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     carId should be > 0
   }
 
-  "The Repository" should "read an entity" in {
+  it should "read an entity" in {
     val person = Person(None, "john")
     val id: Int = executeAction(personRepository.save(person))
     id should be > 0
@@ -51,6 +51,19 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     rowCount should equal(1)
     val read: Coffee = executeAction(coffeeRepository.findOne(78))
     coffee.id.get should equal(read.id.get)
+  }
+
+  it should "search for an existing entity" in {
+    val person = Person(None, "john")
+    val id: Int = executeAction(personRepository.save(person))
+    id should be > 0
+    val read: Option[Person] = executeAction(personRepository.searchOne(id))
+    id should equal(read.get.id.get)
+  }
+
+  it should "search for an entity that does not exist" in {
+    val read: Option[Person] = executeAction(personRepository.searchOne(1))
+    read should equal(None)
   }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
