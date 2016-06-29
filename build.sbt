@@ -9,5 +9,6 @@ libraryDependencies ++= Seq(
   
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.1.1" % "test",
-  "com.h2database" % "h2" % "1.4.192" % "test"
+  "com.h2database" % "h2" % "1.4.192" % "test",
+  "org.slf4j" % "slf4j-simple" % "1.7.21" % "test"
 )

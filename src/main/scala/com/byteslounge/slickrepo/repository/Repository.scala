@@ -22,4 +22,8 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
     tableQuery returning tableQuery.map(_.id) += entity
   }
 
+  def saveWithId(entity: T): DBIO[Int] = {
+    tableQuery += entity
+  }
+
 }
