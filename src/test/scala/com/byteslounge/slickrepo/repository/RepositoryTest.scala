@@ -111,11 +111,18 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     } yield (readCoffee, rowCount, personId))
 
     val result: (Coffee, Int, Int) = executeAction(coffeeRepository.executeTransactionally(work))
-    
+
     result._1.id.get should equal(1)
     result._2 should equal(1)
     result._3 should be > 0
 
+  }
+
+  it should "count entities" in {
+    executeAction(personRepository.save(Person(None, "john")))
+    executeAction(personRepository.save(Person(None, "smith")))
+    val count: Int = executeAction(personRepository.count())
+    count should equal(2)
   }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
