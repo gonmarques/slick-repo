@@ -176,6 +176,27 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     resultIds should equal(Seq((idPerson1, idCar2), (idPerson1, idCar1), (idPerson2, idCar3)))
   }
 
+  it should "execute ad-hoc statements within transactions" in {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val idPerson1: Int = executeAction(personRepository.save(Person(None, "john")))
+    val idPerson2: Int = executeAction(personRepository.save(Person(None, "smith")))
+
+    val query = TableQuery[Persons].map(_.id).max.result
+
+    var work = (for {
+      maxId <- query
+      _ <- coffeeRepository.saveWithId(Coffee(Option(maxId.get + 1), "Some Coffee"))
+    } yield ())
+
+    executeAction(coffeeRepository.executeTransactionally(work))
+
+    val maxPersonId = math.max(idPerson1, idPerson2)
+    val coffee: Coffee = executeAction(coffeeRepository.findOne(maxPersonId + 1))
+    coffee.id.get should equal(maxPersonId + 1)
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }
