@@ -30,4 +30,8 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
     tableQuery += entity
   }
 
+  def delete(id: ID): DBIO[Int] = {
+    tableQuery.filter(_.id === id).delete
+  }
+
 }
