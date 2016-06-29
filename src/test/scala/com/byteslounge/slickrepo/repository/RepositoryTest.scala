@@ -86,6 +86,17 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     Seq(id1, id2) should equal(userIds)
   }
 
+  it should "update an entity" in {
+    val person = Person(None, "john")
+    val id: Int = executeAction(personRepository.save(person))
+    val keyedPerson = person.copy(id = Option(id))
+    val updatedPerson = keyedPerson.copy(name = "smith")
+    val rowCount: Int = executeAction(personRepository.update(updatedPerson))
+    rowCount should equal(1)
+    val read: Person = executeAction(personRepository.findOne(id))
+    read.name should equal("smith")
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }

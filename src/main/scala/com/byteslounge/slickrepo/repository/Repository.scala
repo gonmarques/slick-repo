@@ -34,6 +34,10 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
     tableQuery += entity
   }
 
+  def update(entity: T): DBIO[Int] = {
+    tableQuery.filter(_.id === entity.id.get).update(entity)
+  }
+
   def delete(id: ID): DBIO[Int] = {
     tableQuery.filter(_.id === id).delete
   }
