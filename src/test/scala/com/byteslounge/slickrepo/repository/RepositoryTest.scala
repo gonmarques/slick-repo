@@ -116,6 +116,17 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     result._2 should equal(1)
     result._3 should be > 0
 
+    val personCount: Int = executeAction(personRepository.count())
+    personCount should equal(1)
+    val readPerson: Person = executeAction(personRepository.findOne(result._3))
+    readPerson.id.get should equal(result._3)
+
+    val coffeeCount: Int = executeAction(coffeeRepository.count())
+    val readCoffee1: Coffee = executeAction(coffeeRepository.findOne(1))
+    val readCoffee2: Coffee = executeAction(coffeeRepository.findOne(2))
+    coffeeCount should equal(2)
+    readCoffee1.id.get should equal(1)
+    readCoffee2.id.get should equal(2)
   }
 
   it should "count entities" in {
