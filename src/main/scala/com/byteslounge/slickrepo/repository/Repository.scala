@@ -14,6 +14,10 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
   implicit lazy val _pkType: BaseTypedType[ID] = pkType
   def tableQuery: TableQuery[K]
 
+  def findAll(): DBIO[Seq[T]] = {
+    tableQuery.result
+  }
+
   def findOne(id: ID): DBIO[T] = {
     tableQuery.filter(_.id === id).result.head
   }

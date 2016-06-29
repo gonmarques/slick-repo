@@ -75,6 +75,17 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     readAfterDelete should equal(None)
   }
 
+  it should "find all entities" in {
+    val person1 = Person(None, "john")
+    val id1: Int = executeAction(personRepository.save(person1))
+    val person2 = Person(None, "john")
+    val id2: Int = executeAction(personRepository.save(person2))
+    val userIds: Seq[Int] = executeAction(personRepository.findAll())
+      .map { p => p.id.get }
+      .sortWith(_ < _)
+    Seq(id1, id2) should equal(userIds)
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }
