@@ -97,6 +97,27 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     read.name should equal("smith")
   }
 
+  it should "execute statements transactionally" in {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val coffee = Coffee(Option(1), "Some Coffee")
+    executeAction(coffeeRepository.saveWithId(coffee))
+
+    var work = (for {
+      readCoffee <- coffeeRepository.findOne(1)
+      rowCount <- coffeeRepository.saveWithId(Coffee(Option(2), readCoffee.brand + "2"))
+      personId <- personRepository.save(Person(None, "john"))
+    } yield (readCoffee, rowCount, personId))
+
+    val result: (Coffee, Int, Int) = executeAction(coffeeRepository.executeTransactionally(work))
+    
+    result._1.id.get should equal(1)
+    result._2 should equal(1)
+    result._3 should be > 0
+
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }
