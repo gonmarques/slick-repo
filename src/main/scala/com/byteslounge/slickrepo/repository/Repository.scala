@@ -15,39 +15,44 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
   def tableQuery: TableQuery[K]
 
   def findAll(): DBIO[Seq[T]] = {
-    tableQuery.result
+    tableQueryCompiled.result
   }
 
   def findOne(id: ID): DBIO[T] = {
-    tableQuery.filter(_.id === id).result.head
+    findOneCompiled(id).result.head
   }
 
   def searchOne(id: ID): DBIO[Option[T]] = {
-    tableQuery.filter(_.id === id).result.headOption
+    findOneCompiled(id).result.headOption
   }
 
   def save(entity: T): DBIO[ID] = {
-    tableQuery returning tableQuery.map(_.id) += entity
+    saveCompiled += entity
   }
 
   def saveWithId(entity: T): DBIO[Int] = {
-    tableQuery += entity
+    tableQueryCompiled += entity
   }
 
   def update(entity: T): DBIO[Int] = {
-    tableQuery.filter(_.id === entity.id.get).update(entity)
+    findOneCompiled(entity.id.get).update(entity)
   }
 
   def delete(id: ID): DBIO[Int] = {
-    tableQuery.filter(_.id === id).delete
+    findOneCompiled(id).delete
   }
 
   def count(): DBIO[Int] = {
-    tableQuery.map(_.id).length.result
+    countCompiled.result
   }
 
   def executeTransactionally[R](work: DBIO[R]): DBIO[R] = {
     work.transactionally
   }
+  
+  lazy private val tableQueryCompiled = Compiled(tableQuery)
+  lazy private val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
+  lazy private val saveCompiled = tableQuery returning tableQuery.map(_.id)
+  lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
 
 }
