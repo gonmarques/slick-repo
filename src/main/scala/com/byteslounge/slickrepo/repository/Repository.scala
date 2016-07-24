@@ -5,8 +5,9 @@ import slick.driver.JdbcProfile
 import slick.ast.BaseTypedType
 import com.byteslounge.slickrepo.meta.Entity
 import slick.profile.RelationalProfile
+import scala.concurrent.ExecutionContext
 
-abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
+abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
 
   import driver.api._
 
@@ -26,12 +27,12 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
     findOneCompiled(id).result.headOption
   }
 
-  def save(entity: T): DBIO[ID] = {
-    saveCompiled += entity
+  def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    (saveCompiled += entity).map(id => entity.withId(id))
   }
 
-  def saveWithId(entity: T): DBIO[Int] = {
-    tableQueryCompiled += entity
+  def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    (tableQueryCompiled += entity).map(_ => entity)
   }
 
   def update(entity: T): DBIO[Int] = {
@@ -49,7 +50,7 @@ abstract class Repository[T <: Entity[ID], ID, K <: Keyed[ID] with RelationalPro
   def executeTransactionally[R](work: DBIO[R]): DBIO[R] = {
     work.transactionally
   }
-  
+
   lazy private val tableQueryCompiled = Compiled(tableQuery)
   lazy private val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
   lazy private val saveCompiled = tableQuery returning tableQuery.map(_.id)

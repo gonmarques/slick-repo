@@ -25,39 +25,37 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
   val coffeeRepository = new CoffeeRepository
 
   "The Repository" should "save an entity" in {
-    val person = Person(None, "john")
-    val id: Int = executeAction(personRepository.save(person))
-    id should be > 0
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    person.id.get should be > 0
   }
 
   it should "save related entities" in {
-    val person = Person(None, "john")
-    val personId: Int = executeAction(personRepository.save(person))
-    val car = Car(None, "Benz", personId)
-    val carId: Int = executeAction(carRepository.save(car))
-    carId should be > 0
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val car: Car = executeAction(carRepository.save(Car(None, "Benz", person.id.get)))
+    car.id.get should be > 0
   }
 
   it should "read an entity" in {
-    val person = Person(None, "john")
-    val id: Int = executeAction(personRepository.save(person))
-    val read: Person = executeAction(personRepository.findOne(id))
-    id should equal(read.id.get)
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val read: Person = executeAction(personRepository.findOne(person.id.get))
+    person.id.get should equal(read.id.get)
   }
 
   it should "save an entity with a predefined ID" in {
-    val coffee = Coffee(Option(78), "Some Coffee")
-    val rowCount: Int = executeAction(coffeeRepository.saveWithId(coffee))
-    rowCount should equal(1)
-    val read: Coffee = executeAction(coffeeRepository.findOne(78))
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val coffee: Coffee = executeAction(coffeeRepository.saveWithId(Coffee(Option(78), "Some Coffee")))
+    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get))
     coffee.id.get should equal(read.id.get)
   }
 
   it should "search for an existing entity" in {
-    val person = Person(None, "john")
-    val id: Int = executeAction(personRepository.save(person))
-    val read: Option[Person] = executeAction(personRepository.searchOne(id))
-    id should equal(read.get.id.get)
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val read: Option[Person] = executeAction(personRepository.searchOne(person.id.get))
+    person.id.get should equal(read.get.id.get)
   }
 
   it should "search for an entity that does not exist" in {
@@ -66,35 +64,33 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
   }
 
   it should "delete an entity" in {
-    val person = Person(None, "john")
-    val id: Int = executeAction(personRepository.save(person))
-    val read: Person = executeAction(personRepository.findOne(id))
-    id should equal(read.id.get)
-    val rowCount: Int = executeAction(personRepository.delete(id))
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val read: Person = executeAction(personRepository.findOne(person.id.get))
+    person.id.get should equal(read.id.get)
+    val rowCount: Int = executeAction(personRepository.delete(person.id.get))
     rowCount should equal(1)
-    val readAfterDelete: Option[Person] = executeAction(personRepository.searchOne(id))
+    val readAfterDelete: Option[Person] = executeAction(personRepository.searchOne(person.id.get))
     readAfterDelete should equal(None)
   }
 
   it should "find all entities" in {
-    val person1 = Person(None, "john")
-    val id1: Int = executeAction(personRepository.save(person1))
-    val person2 = Person(None, "john")
-    val id2: Int = executeAction(personRepository.save(person2))
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person1: Person = executeAction(personRepository.save(Person(None, "john")))
+    val person2: Person = executeAction(personRepository.save(Person(None, "john")))
     val userIds: Seq[Int] = executeAction(personRepository.findAll())
       .map { p => p.id.get }
       .sortWith(_ < _)
-    Seq(id1, id2) should equal(userIds)
+    Seq(person1.id.get, person2.id.get) should equal(userIds)
   }
 
   it should "update an entity" in {
-    val person = Person(None, "john")
-    val id: Int = executeAction(personRepository.save(person))
-    val keyedPerson = person.copy(id = Option(id))
-    val updatedPerson = keyedPerson.copy(name = "smith")
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val updatedPerson = person.copy(name = "smith")
     val rowCount: Int = executeAction(personRepository.update(updatedPerson))
     rowCount should equal(1)
-    val read: Person = executeAction(personRepository.findOne(id))
+    val read: Person = executeAction(personRepository.findOne(person.id.get))
     read.name should equal("smith")
   }
 
@@ -102,25 +98,24 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val coffee = Coffee(Option(1), "Some Coffee")
-    executeAction(coffeeRepository.saveWithId(coffee))
+    executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
 
     var work = (for {
       readCoffee <- coffeeRepository.findOne(1)
-      rowCount <- coffeeRepository.saveWithId(Coffee(Option(2), readCoffee.brand + "2"))
-      personId <- personRepository.save(Person(None, "john"))
-    } yield (readCoffee, rowCount, personId))
+      otherCoffee <- coffeeRepository.saveWithId(Coffee(Option(2), readCoffee.brand + "2"))
+      person <- personRepository.save(Person(None, "john"))
+    } yield (readCoffee, otherCoffee, person))
 
-    val result: (Coffee, Int, Int) = executeAction(coffeeRepository.executeTransactionally(work))
+    val result: (Coffee, Coffee, Person) = executeAction(coffeeRepository.executeTransactionally(work))
 
     result._1.id.get should equal(1)
-    result._2 should equal(1)
-    result._3 should be > 0
+    result._2.id.get should equal(2)
+    result._3.id.get should be > 0
 
     val personCount: Int = executeAction(personRepository.count())
     personCount should equal(1)
-    val readPerson: Person = executeAction(personRepository.findOne(result._3))
-    readPerson.id.get should equal(result._3)
+    val readPerson: Person = executeAction(personRepository.findOne(result._3.id.get))
+    readPerson.id.get should equal(result._3.id.get)
 
     val coffeeCount: Int = executeAction(coffeeRepository.count())
     val readCoffee1: Coffee = executeAction(coffeeRepository.findOne(1))
@@ -136,10 +131,10 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val coffee = Coffee(Option(1), "Some Coffee")
-    executeAction(coffeeRepository.saveWithId(coffee))
+    executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
 
     var work = (for {
+      _ <- personRepository.save(Person(None, "john"))
       _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Some Coffee2"))
       _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Duplicated ID"))
     } yield ())
@@ -155,9 +150,12 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     cofeeCount should equal(1)
     val readCoffee: Coffee = executeAction(coffeeRepository.findOne(1))
     readCoffee.id.get should equal(1)
+    val personCount: Int = executeAction(personRepository.count())
+    personCount should equal(0)
   }
 
   it should "count entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     executeAction(personRepository.save(Person(None, "john")))
     executeAction(personRepository.save(Person(None, "smith")))
     val count: Int = executeAction(personRepository.count())
@@ -165,23 +163,24 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
   }
 
   it should "execute custom queries" in {
-    val idPerson1: Int = executeAction(personRepository.save(Person(None, "john")))
-    val idPerson2: Int = executeAction(personRepository.save(Person(None, "smith")))
-    val idCar1: Int = executeAction(carRepository.save(Car(None, "Benz", idPerson1)))
-    val idCar2: Int = executeAction(carRepository.save(Car(None, "Chevrolet", idPerson1)))
-    val idCar3: Int = executeAction(carRepository.save(Car(None, "Toyota", idPerson2)))
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val person1: Person = executeAction(personRepository.save(Person(None, "john")))
+    val person2: Person = executeAction(personRepository.save(Person(None, "smith")))
+    val car1: Car = executeAction(carRepository.save(Car(None, "Benz", person1.id.get)))
+    val car2: Car = executeAction(carRepository.save(Car(None, "Chevrolet", person1.id.get)))
+    val car3: Car = executeAction(carRepository.save(Car(None, "Toyota", person2.id.get)))
     val result: Seq[(Person, Car)] = executeAction(personRepository.findWithCarsOrderByIdAscAndCarIdDesc())
     result.size should equal(3)
     val resultIds: Seq[(Int, Int)] = result.map { case (p, c) => (p.id.get, c.id.get) }
-    resultIds should equal(Seq((idPerson1, idCar2), (idPerson1, idCar1), (idPerson2, idCar3)))
+    resultIds should equal(Seq((person1.id.get, car2.id.get), (person1.id.get, car1.id.get), (person2.id.get, car3.id.get)))
   }
 
   it should "execute ad-hoc statements within transactions" in {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val idPerson1: Int = executeAction(personRepository.save(Person(None, "john")))
-    val idPerson2: Int = executeAction(personRepository.save(Person(None, "smith")))
+    val person1: Person = executeAction(personRepository.save(Person(None, "john")))
+    val person2: Person = executeAction(personRepository.save(Person(None, "smith")))
 
     val query = TableQuery[Persons].map(_.id).max.result
 
@@ -192,7 +191,7 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     executeAction(coffeeRepository.executeTransactionally(work))
 
-    val maxPersonId = math.max(idPerson1, idPerson2)
+    val maxPersonId = math.max(person1.id.get, person2.id.get)
     val coffee: Coffee = executeAction(coffeeRepository.findOne(maxPersonId + 1))
     coffee.id.get should equal(maxPersonId + 1)
   }
