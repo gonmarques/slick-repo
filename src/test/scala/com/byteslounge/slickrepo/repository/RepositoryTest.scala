@@ -17,12 +17,15 @@ import com.byteslounge.slickrepo.domain.Cars
 import com.byteslounge.slickrepo.domain.Coffees
 import com.byteslounge.slickrepo.domain.Coffee
 import java.sql.SQLException
+import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity
+import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntities
 
 class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
   val personRepository = new PersonRepository
   val carRepository = new CarRepository
   val coffeeRepository = new CoffeeRepository
+  val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository
 
   "The Repository" should "save an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -196,6 +199,14 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     coffee.id.get should equal(maxPersonId + 1)
   }
 
+  it should "save an entity with an initial integer version field value" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
+    entity.version.get should equal(1)
+    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    readEntity.version.get should equal(1)
+  }
+
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
   }
@@ -221,11 +232,11 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
   }
 
   def createSchema() {
-    executeAction(DBIO.seq(TableQuery[Persons].schema.create, TableQuery[Cars].schema.create, TableQuery[Coffees].schema.create))
+    executeAction(DBIO.seq(TableQuery[Persons].schema.create, TableQuery[Cars].schema.create, TableQuery[Coffees].schema.create, TableQuery[TestIntegerVersionedEntities].schema.create))
   }
 
   def dropSchema() {
-    executeAction(DBIO.seq(TableQuery[Coffees].schema.drop, TableQuery[Cars].schema.drop, TableQuery[Persons].schema.drop))
+    executeAction(DBIO.seq(TableQuery[Coffees].schema.drop, TableQuery[Cars].schema.drop, TableQuery[Persons].schema.drop, TableQuery[TestIntegerVersionedEntities].schema.drop))
   }
 
 }

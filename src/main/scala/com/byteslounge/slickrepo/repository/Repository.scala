@@ -6,6 +6,8 @@ import slick.ast.BaseTypedType
 import com.byteslounge.slickrepo.meta.Entity
 import slick.profile.RelationalProfile
 import scala.concurrent.ExecutionContext
+import com.byteslounge.slickrepo.version.VersionHelper
+import com.byteslounge.slickrepo.meta.VersionedEntity
 
 abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
 
@@ -28,7 +30,8 @@ abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with Relational
   }
 
   def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    (saveCompiled += entity).map(id => entity.withId(id))
+    val versionedEntity = applyVersion(entity)
+    (saveCompiled += versionedEntity).map(id => versionedEntity.withId(id))
   }
 
   def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
@@ -55,5 +58,12 @@ abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with Relational
   lazy private val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
   lazy private val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
+
+  private def applyVersion(entity: T): T = {
+    entity match {
+      case _: VersionedEntity[_, _, _] => new VersionHelper[T].process(entity)
+      case _                                         => entity
+    }
+  }
 
 }

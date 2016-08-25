@@ -19,15 +19,4 @@ class ClassUtilsTest extends FlatSpec with Matchers {
     result should equal (false)
   }
 
-  it should "assert that a given reference is null" in {
-    val result = ClassUtils.isNull(null)
-    result should equal (true)
-  }
-
-  it should "assert that a given non-null reference is not null" in {
-    val one: Int = 3
-    val result = ClassUtils.isNull(one)
-    result should equal (false)
-  }
-
 }
