@@ -1,7 +1,2 @@
-/bin/
-/.classpath
-/.project
-/.settings/
+/.idea/
 target/
-/.cache-main
-/.cache-tests

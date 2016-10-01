@@ -1,13 +1,11 @@
 package com.byteslounge.slickrepo.repository
 
-import com.byteslounge.slickrepo.meta.Keyed
-import slick.driver.JdbcProfile
+import com.byteslounge.slickrepo.meta.{Entity, Keyed}
 import slick.ast.BaseTypedType
-import com.byteslounge.slickrepo.meta.Entity
+import slick.driver.JdbcProfile
 import slick.profile.RelationalProfile
+
 import scala.concurrent.ExecutionContext
-import com.byteslounge.slickrepo.version.VersionHelper
-import com.byteslounge.slickrepo.meta.VersionedEntity
 
 abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
 
@@ -30,16 +28,15 @@ abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with Relational
   }
 
   def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val versionedEntity = applyVersion(entity)
-    (saveCompiled += versionedEntity).map(id => versionedEntity.withId(id))
+    (saveCompiled += entity).map(id => entity.withId(id))
   }
 
   def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     (tableQueryCompiled += entity).map(_ => entity)
   }
 
-  def update(entity: T): DBIO[Int] = {
-    findOneCompiled(entity.id.get).update(entity)
+  def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    findOneCompiled(entity.id.get).update(entity).map(_ => entity)
   }
 
   def delete(id: ID): DBIO[Int] = {
@@ -55,15 +52,8 @@ abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with Relational
   }
 
   lazy private val tableQueryCompiled = Compiled(tableQuery)
-  lazy private val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
-  lazy private val saveCompiled = tableQuery returning tableQuery.map(_.id)
+  lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
+  lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
-
-  private def applyVersion(entity: T): T = {
-    entity match {
-      case _: VersionedEntity[_, _, _] => new VersionHelper[T].process(entity)
-      case _                                         => entity
-    }
-  }
 
 }

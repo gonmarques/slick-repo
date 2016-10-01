@@ -90,9 +90,9 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
   it should "update an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val person: Person = executeAction(personRepository.save(Person(None, "john")))
-    val updatedPerson = person.copy(name = "smith")
-    val rowCount: Int = executeAction(personRepository.update(updatedPerson))
-    rowCount should equal(1)
+    var updatedPerson: Person = person.copy(name = "smith")
+    updatedPerson = executeAction(personRepository.update(updatedPerson))
+    updatedPerson.id.get should equal(person.id.get)
     val read: Person = executeAction(personRepository.findOne(person.id.get))
     read.name should equal("smith")
   }
@@ -205,6 +205,17 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     entity.version.get should equal(1)
     val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
     readEntity.version.get should equal(1)
+  }
+
+  it should "update an entity incrementing the integer version field value" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
+    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    readEntity.version.get should equal(1)
+    val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))
+    updatedEntity.version.get should equal(2)
+    val readUpdatedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    readUpdatedEntity.version.get should equal(2)
   }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
