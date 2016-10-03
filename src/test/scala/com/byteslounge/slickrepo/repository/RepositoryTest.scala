@@ -5,8 +5,10 @@ import org.scalatest.BeforeAndAfter
 import slick.jdbc.JdbcBackend.Database
 import org.scalatest.Matchers
 import slick.dbio.DBIOAction
+
 import scala.concurrent.Await
 import slick.dbio.NoStream
+
 import scala.concurrent.duration.Duration
 import com.byteslounge.slickrepo.domain.Person
 import com.byteslounge.slickrepo.domain.Car
@@ -17,8 +19,10 @@ import com.byteslounge.slickrepo.domain.Cars
 import com.byteslounge.slickrepo.domain.Coffees
 import com.byteslounge.slickrepo.domain.Coffee
 import java.sql.SQLException
+
 import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity
 import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntities
+import com.byteslounge.slickrepo.exception.OptimisticLockException
 
 class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
@@ -216,6 +220,22 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     updatedEntity.version.get should equal(2)
     val readUpdatedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
     readUpdatedEntity.version.get should equal(2)
+  }
+
+  it should "updating an integer versioned entity that was meanwhile updated by other process throws exception" in {
+    val exception =
+    intercept[OptimisticLockException] {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
+      val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+      readEntity.version.get should equal(1)
+
+      val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))
+      updatedEntity.version.get should equal(2)
+
+      executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 4)))
+    }
+    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
   }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {

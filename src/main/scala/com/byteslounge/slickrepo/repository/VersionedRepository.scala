@@ -1,15 +1,21 @@
 package com.byteslounge.slickrepo.repository
 
+import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.version.VersionHelper
+import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 import slick.profile.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, K <: Versioned[ID, V] with RelationalProfile#Table[T], V] (override val driver: JdbcProfile) extends Repository[T, ID, K](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, K <: Versioned[ID, V] with RelationalProfile#Table[T], V](override val driver: JdbcProfile) extends Repository[T, ID, K](driver) {
 
   import driver.api._
+
+  def versionType: BaseTypedType[V]
+
+  implicit lazy val _versionType: BaseTypedType[V] = versionType
 
   override def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
@@ -18,11 +24,23 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, K <: Vers
 
   override def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
-    findOneCompiled(versionedEntity.id.get).update(versionedEntity).map(_ => versionedEntity)
+    findOneVersionedCompiled(versionedEntity.id.get, entity.version.get).update(versionedEntity)
+      .map(updateCheck(versionedEntity, entity.version.get))
   }
 
   private def applyVersion(entity: T): T = {
     new VersionHelper[T].process(entity)
   }
+
+  private def updateCheck(updatedEntity: T, expectedVersion: Any): (Int => T) = {
+    (count) => {
+      count match {
+        case 1 => updatedEntity
+        case _ => throw new OptimisticLockException("Failed to update entity of type " + updatedEntity.getClass.getName + ". Expected version was not found: " + expectedVersion)
+      }
+    }
+  }
+
+  lazy private val findOneVersionedCompiled = Compiled((id: Rep[ID], version: Rep[V]) => tableQuery.filter(_.id === id).filter(_.version === version))
 
 }

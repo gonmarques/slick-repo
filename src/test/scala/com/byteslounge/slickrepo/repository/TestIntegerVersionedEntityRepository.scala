@@ -8,5 +8,6 @@ import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity
 
 class TestIntegerVersionedEntityRepository extends VersionedRepository[TestIntegerVersionedEntity, Int, TestIntegerVersionedEntities, Int](H2Driver) {
   val pkType = implicitly[BaseTypedType[Int]]
+  val versionType = implicitly[BaseTypedType[Int]]
   val tableQuery = TableQuery[TestIntegerVersionedEntities]
 }
