@@ -9,12 +9,11 @@ import slick.profile.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, K <: Versioned[ID, V] with RelationalProfile#Table[T], V](override val driver: JdbcProfile) extends Repository[T, ID, K](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, K <: Versioned[ID, V] with RelationalProfile#Table[T], V] (override val driver: JdbcProfile) extends Repository[T, ID, K](driver) {
 
   import driver.api._
 
   def versionType: BaseTypedType[V]
-
   implicit lazy val _versionType: BaseTypedType[V] = versionType
 
   override def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
