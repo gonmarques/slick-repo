@@ -1,28 +1,19 @@
 package com.byteslounge.slickrepo.repository
 
-import org.scalatest.FlatSpec
-import org.scalatest.BeforeAndAfter
+import java.sql.SQLException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
+
+import com.byteslounge.slickrepo.domain._
+import com.byteslounge.slickrepo.exception.OptimisticLockException
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import slick.dbio.{DBIOAction, NoStream}
+import slick.driver.H2Driver.api._
 import slick.jdbc.JdbcBackend.Database
-import org.scalatest.Matchers
-import slick.dbio.DBIOAction
+import slick.lifted.TableQuery
 
 import scala.concurrent.Await
-import slick.dbio.NoStream
-
 import scala.concurrent.duration.Duration
-import com.byteslounge.slickrepo.domain.Person
-import com.byteslounge.slickrepo.domain.Car
-import slick.driver.H2Driver.api._
-import slick.lifted.TableQuery
-import com.byteslounge.slickrepo.domain.Persons
-import com.byteslounge.slickrepo.domain.Cars
-import com.byteslounge.slickrepo.domain.Coffees
-import com.byteslounge.slickrepo.domain.Coffee
-import java.sql.SQLException
-
-import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity
-import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntities
-import com.byteslounge.slickrepo.exception.OptimisticLockException
 
 class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
@@ -149,8 +140,8 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
     try {
       executeAction(coffeeRepository.executeTransactionally(work))
     } catch {
-      case sqle: SQLException if (sqle.getErrorCode == 23505) =>
-      case e: Exception                                       => fail
+      case sqle: SQLException if sqle.getErrorCode == 23505 =>
+      case e: Exception                                     => fail
     }
 
     val cofeeCount: Int = executeAction(coffeeRepository.count())
@@ -236,6 +227,48 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
       executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 4)))
     }
     exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
+  }
+
+  it should "pessimistic lock entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val startLatch = new CountDownLatch(1)
+    val endLatch = new CountDownLatch(2)
+    val successCount = new AtomicInteger
+    val failureCount = new AtomicInteger
+
+    val newPerson: Person = executeAction(personRepository.save(Person(None, "john")))
+
+    def runnable() = new Runnable() {
+      def run() = {
+        startLatch.await()
+        val work = for {
+          x <- personRepository.lock(newPerson)
+          y <- DBIO.successful(Thread.sleep(2500))
+        } yield (x, y)
+        try{
+          executeAction(personRepository.executeTransactionally(work))
+          successCount.incrementAndGet()
+        } catch {
+          case sqle: SQLException if sqle.getErrorCode == 50200 => failureCount.incrementAndGet()
+          case e: Exception                                     =>
+        }
+
+        endLatch.countDown()
+      }
+    }
+
+    successCount.get() should equal(0)
+    failureCount.get() should equal(0)
+
+    new Thread(runnable()).start()
+    new Thread(runnable()).start()
+
+    Thread.sleep(200)
+    startLatch.countDown()
+    endLatch.await()
+
+    successCount.get() should equal(1)
+    failureCount.get() should equal(1)
   }
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {

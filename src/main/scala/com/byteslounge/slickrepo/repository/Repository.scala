@@ -23,6 +23,13 @@ abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with Relational
     findOneCompiled(id).result.head
   }
 
+  def lock(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    val result = findOneCompiled(entity.id.get).result
+    result.overrideStatements(
+      List(result.statements.head + " FOR UPDATE")
+    ).map(_ => entity)
+  }
+
   def searchOne(id: ID): DBIO[Option[T]] = {
     findOneCompiled(id).result.headOption
   }
