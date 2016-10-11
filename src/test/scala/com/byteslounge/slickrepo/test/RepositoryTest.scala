@@ -1,26 +1,19 @@
-package com.byteslounge.slickrepo.repository
+package com.byteslounge.slickrepo.test
 
 import java.sql.SQLException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.domain._
-import com.byteslounge.slickrepo.exception.OptimisticLockException
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import slick.dbio.{DBIOAction, NoStream}
+import com.byteslounge.slickrepo.repository.{CarRepository, CoffeeRepository, PersonRepository}
 import slick.driver.H2Driver.api._
-import slick.jdbc.JdbcBackend.Database
 import slick.lifted.TableQuery
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
-class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
+class RepositoryTest extends AbstractRepositoryTest {
 
   val personRepository = new PersonRepository
   val carRepository = new CarRepository
   val coffeeRepository = new CoffeeRepository
-  val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository
 
   "The Repository" should "save an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -98,11 +91,11 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
 
-    var work = (for {
+    val work = for {
       readCoffee <- coffeeRepository.findOne(1)
       otherCoffee <- coffeeRepository.saveWithId(Coffee(Option(2), readCoffee.brand + "2"))
       person <- personRepository.save(Person(None, "john"))
-    } yield (readCoffee, otherCoffee, person))
+    } yield (readCoffee, otherCoffee, person)
 
     val result: (Coffee, Coffee, Person) = executeAction(coffeeRepository.executeTransactionally(work))
 
@@ -131,11 +124,11 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
 
-    var work = (for {
+    val work = for {
       _ <- personRepository.save(Person(None, "john"))
       _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Some Coffee2"))
       _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Duplicated ID"))
-    } yield ())
+    } yield ()
 
     try {
       executeAction(coffeeRepository.executeTransactionally(work))
@@ -182,51 +175,16 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     val query = TableQuery[Persons].map(_.id).max.result
 
-    var work = (for {
+    val work = for {
       maxId <- query
       _ <- coffeeRepository.saveWithId(Coffee(Option(maxId.get + 1), "Some Coffee"))
-    } yield ())
+    } yield ()
 
     executeAction(coffeeRepository.executeTransactionally(work))
 
     val maxPersonId = math.max(person1.id.get, person2.id.get)
     val coffee: Coffee = executeAction(coffeeRepository.findOne(maxPersonId + 1))
     coffee.id.get should equal(maxPersonId + 1)
-  }
-
-  it should "save an entity with an initial integer version field value" in {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
-    entity.version.get should equal(1)
-    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
-    readEntity.version.get should equal(1)
-  }
-
-  it should "update an entity incrementing the integer version field value" in {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
-    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
-    readEntity.version.get should equal(1)
-    val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))
-    updatedEntity.version.get should equal(2)
-    val readUpdatedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
-    readUpdatedEntity.version.get should equal(2)
-  }
-
-  it should "updating an integer versioned entity that was meanwhile updated by other process throws exception" in {
-    val exception =
-    intercept[OptimisticLockException] {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(None, 2, None)))
-      val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
-      readEntity.version.get should equal(1)
-
-      val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))
-      updatedEntity.version.get should equal(2)
-
-      executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 4)))
-    }
-    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
   }
 
   it should "pessimistic lock entities" in {
@@ -269,38 +227,6 @@ class RepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     successCount.get() should equal(1)
     failureCount.get() should equal(1)
-  }
-
-  def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
-    Await.result(db.run(action), Duration.Inf)
-  }
-
-  var db: Database = null
-
-  before {
-    initializeDb
-    createSchema
-  }
-
-  after {
-    dropSchema
-    shutdownDb
-  }
-
-  def initializeDb() {
-    db = Database.forConfig("test")
-  }
-
-  def shutdownDb() {
-    db.close
-  }
-
-  def createSchema() {
-    executeAction(DBIO.seq(TableQuery[Persons].schema.create, TableQuery[Cars].schema.create, TableQuery[Coffees].schema.create, TableQuery[TestIntegerVersionedEntities].schema.create))
-  }
-
-  def dropSchema() {
-    executeAction(DBIO.seq(TableQuery[Coffees].schema.drop, TableQuery[Cars].schema.drop, TableQuery[Persons].schema.drop, TableQuery[TestIntegerVersionedEntities].schema.drop))
   }
 
 }

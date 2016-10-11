@@ -12,3 +12,5 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.192" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.21" % "test"
 )
+
+parallelExecution in Test := false
