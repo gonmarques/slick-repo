@@ -1,8 +1,8 @@
 package com.byteslounge.slickrepo.meta
 
 import org.scalatest.FlatSpec
-import com.byteslounge.slickrepo.domain.Person
-import com.byteslounge.slickrepo.domain.Car
+import com.byteslounge.slickrepo.h2.domain.Person
+import com.byteslounge.slickrepo.h2.domain.Car
 import org.scalatest.Matchers
 
 class EntityTest extends FlatSpec with Matchers {

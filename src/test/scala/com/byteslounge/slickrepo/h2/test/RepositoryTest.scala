@@ -1,11 +1,11 @@
-package com.byteslounge.slickrepo.test
+package com.byteslounge.slickrepo.h2.test
 
 import java.sql.SQLException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.byteslounge.slickrepo.domain._
-import com.byteslounge.slickrepo.repository.{CarRepository, CoffeeRepository, PersonRepository}
+import com.byteslounge.slickrepo.h2.domain._
+import com.byteslounge.slickrepo.h2.repository.{CarRepository, CoffeeRepository, PersonRepository}
 import slick.driver.H2Driver.api._
 import slick.lifted.TableQuery
 

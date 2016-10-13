@@ -1,6 +1,6 @@
-package com.byteslounge.slickrepo.test
+package com.byteslounge.slickrepo.h2.test
 
-import com.byteslounge.slickrepo.domain._
+import com.byteslounge.slickrepo.h2.domain._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import slick.dbio.{DBIOAction, NoStream}
 import slick.driver.H2Driver.api._
@@ -10,7 +10,7 @@ import slick.lifted.TableQuery
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class AbstractRepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
+abstract class AbstractRepositoryTest extends FlatSpec with BeforeAndAfter with Matchers {
 
   var db: Database = _
 

@@ -2,7 +2,7 @@ package com.byteslounge.slickrepo.version
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity
+import com.byteslounge.slickrepo.h2.domain.TestIntegerVersionedEntity
 
 class VersionHelperTest extends FlatSpec with Matchers {
 

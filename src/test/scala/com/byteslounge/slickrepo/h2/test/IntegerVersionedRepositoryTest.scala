@@ -1,8 +1,8 @@
-package com.byteslounge.slickrepo.test
+package com.byteslounge.slickrepo.h2.test
 
-import com.byteslounge.slickrepo.domain._
+import com.byteslounge.slickrepo.h2.domain._
 import com.byteslounge.slickrepo.exception.OptimisticLockException
-import com.byteslounge.slickrepo.repository.TestIntegerVersionedEntityRepository
+import com.byteslounge.slickrepo.h2.repository.TestIntegerVersionedEntityRepository
 
 class IntegerVersionedRepositoryTest extends AbstractRepositoryTest {
 
@@ -40,7 +40,7 @@ class IntegerVersionedRepositoryTest extends AbstractRepositoryTest {
 
       executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 4)))
     }
-    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
+    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.h2.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
   }
 
 }

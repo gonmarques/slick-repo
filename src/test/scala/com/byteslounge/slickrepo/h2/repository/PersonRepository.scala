@@ -1,12 +1,10 @@
-package com.byteslounge.slickrepo.repository
+package com.byteslounge.slickrepo.h2.repository
 
-import slick.driver.H2Driver;
-import slick.driver.H2Driver.api._;
+import com.byteslounge.slickrepo.h2.domain.{Car, Cars, Person, Persons}
+import com.byteslounge.slickrepo.repository.Repository
 import slick.ast.BaseTypedType
-import com.byteslounge.slickrepo.domain.Person
-import com.byteslounge.slickrepo.domain.Persons
-import com.byteslounge.slickrepo.domain.Cars
-import com.byteslounge.slickrepo.domain.Car
+import slick.driver.H2Driver
+import slick.driver.H2Driver.api._
 
 class PersonRepository extends Repository[Person, Int, Persons](H2Driver) {
   val pkType = implicitly[BaseTypedType[Int]]

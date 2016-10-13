@@ -1,4 +1,4 @@
-package com.byteslounge.slickrepo.domain
+package com.byteslounge.slickrepo.h2.domain
 
 import com.byteslounge.slickrepo.meta.Entity
 import com.byteslounge.slickrepo.meta.Keyed
