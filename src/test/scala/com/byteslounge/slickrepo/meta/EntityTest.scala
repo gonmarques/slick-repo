@@ -1,51 +1,49 @@
 package com.byteslounge.slickrepo.meta
 
-import org.scalatest.FlatSpec
-import com.byteslounge.slickrepo.h2.domain.Person
-import com.byteslounge.slickrepo.h2.domain.Car
-import org.scalatest.Matchers
+import com.byteslounge.slickrepo.repository.{Car, Person}
+import org.scalatest.{FlatSpec, Matchers}
 
 class EntityTest extends FlatSpec with Matchers {
 
   "The Entity" should "not equal a null entity" in {
     val entity = Person(Some(1), "name")
-    entity should not equal (null)
+    entity should not equal null
   }
 
   it should "not equal another entity if id is same and class is different" in {
     val entity = Person(Some(1), "name")
     val other = Car(Some(1), "other", 1)
-    entity should not equal (other)
+    entity should not equal other
   }
 
   it should "not equal another entity if id is different and class is same" in {
     val entity = Person(Some(1), "name")
     val other = Person(Some(2), "other")
-    entity should not equal (other)
+    entity should not equal other
   }
 
   it should "not equal another entity if other id is empty" in {
     val entity = Person(Some(1), "name")
     val other = Person(None, "other")
-    entity should not equal (other)
+    entity should not equal other
   }
 
   it should "not equal another entity if this id is empty" in {
     val entity = Person(None, "name")
     val other = Person(Some(1), "other")
-    entity should not equal (other)
+    entity should not equal other
   }
 
   it should "not equal another entity if both ids are empty" in {
     val entity = Person(None, "name")
     val other = Person(None, "other")
-    entity should not equal (other)
+    entity should not equal other
   }
 
   it should "equal another entity if id is same and class is same" in {
     val entity = Person(Some(1), "name")
     val other = Person(Some(1), "other")
-    entity should equal(other)
+    entity should equal (other)
   }
 
   it should "have hashcode equal to 1 if id is empty" in {

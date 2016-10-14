@@ -1,19 +1,15 @@
-package com.byteslounge.slickrepo.h2.test
+package com.byteslounge.slickrepo.test
 
 import java.sql.SQLException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.byteslounge.slickrepo.h2.domain._
-import com.byteslounge.slickrepo.h2.repository.{CarRepository, CoffeeRepository, PersonRepository}
-import slick.driver.H2Driver.api._
-import slick.lifted.TableQuery
+import com.byteslounge.slickrepo.repository._
+import slick.driver.JdbcProfile
 
-class RepositoryTest extends AbstractRepositoryTest {
+abstract class RepositoryTest(override val driver: JdbcProfile, override val config: String) extends AbstractRepositoryTest(driver, config) {
 
-  val personRepository = new PersonRepository
-  val carRepository = new CarRepository
-  val coffeeRepository = new CoffeeRepository
+  import driver.api._
 
   "The Repository" should "save an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -173,7 +169,7 @@ class RepositoryTest extends AbstractRepositoryTest {
     val person1: Person = executeAction(personRepository.save(Person(None, "john")))
     val person2: Person = executeAction(personRepository.save(Person(None, "smith")))
 
-    val query = TableQuery[Persons].map(_.id).max.result
+    val query = personRepository.tableQuery.map(_.id).max.result
 
     val work = for {
       maxId <- query

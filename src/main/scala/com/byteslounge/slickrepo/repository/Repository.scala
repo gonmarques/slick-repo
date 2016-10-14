@@ -7,13 +7,14 @@ import slick.profile.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 
-abstract class Repository[T <: Entity[T, ID], ID, K <: Keyed[ID] with RelationalProfile#Table[T]](val driver: JdbcProfile) {
+abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
 
   import driver.api._
 
+  type TableType <: Keyed[ID] with RelationalProfile#Table[T]
   def pkType: BaseTypedType[ID]
   implicit lazy val _pkType: BaseTypedType[ID] = pkType
-  def tableQuery: TableQuery[K]
+  def tableQuery: TableQuery[TableType]
 
   def findAll(): DBIO[Seq[T]] = {
     tableQueryCompiled.result

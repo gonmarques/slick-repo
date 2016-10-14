@@ -1,12 +1,10 @@
-package com.byteslounge.slickrepo.h2.test
+package com.byteslounge.slickrepo.test
 
-import com.byteslounge.slickrepo.h2.domain._
 import com.byteslounge.slickrepo.exception.OptimisticLockException
-import com.byteslounge.slickrepo.h2.repository.TestIntegerVersionedEntityRepository
+import com.byteslounge.slickrepo.repository.TestIntegerVersionedEntity
+import slick.driver.JdbcProfile
 
-class IntegerVersionedRepositoryTest extends AbstractRepositoryTest {
-
-  val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository
+abstract class IntegerVersionedRepositoryTest(override val driver: JdbcProfile, override val config: String) extends AbstractRepositoryTest(driver, config) {
 
   "The Integer Versioned Repository" should "save an entity with an initial integer version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +38,7 @@ class IntegerVersionedRepositoryTest extends AbstractRepositoryTest {
 
       executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 4)))
     }
-    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.h2.domain.TestIntegerVersionedEntity. Expected version was not found: 1")
+    exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.repository.TestIntegerVersionedEntity. Expected version was not found: 1")
   }
 
 }

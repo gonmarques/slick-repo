@@ -1,8 +1,7 @@
 package com.byteslounge.slickrepo.version
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
-import com.byteslounge.slickrepo.h2.domain.TestIntegerVersionedEntity
+import com.byteslounge.slickrepo.repository.TestIntegerVersionedEntity
+import org.scalatest.{FlatSpec, Matchers}
 
 class VersionHelperTest extends FlatSpec with Matchers {
 

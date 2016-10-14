@@ -1,0 +1,51 @@
+package com.byteslounge.slickrepo.test
+
+import com.byteslounge.slickrepo.repository.{CarRepository, CoffeeRepository, PersonRepository, TestIntegerVersionedEntityRepository}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import slick.driver.JdbcProfile
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+abstract class AbstractRepositoryTest(val driver: JdbcProfile, val config: String) extends FlatSpec with BeforeAndAfter with Matchers {
+
+  import driver.api._
+
+  var db: Database = _
+
+  val personRepository = new PersonRepository(driver)
+  val carRepository = new CarRepository(driver)
+  val coffeeRepository = new CoffeeRepository(driver)
+  val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository(driver)
+
+  def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
+    Await.result(db.run(action), Duration.Inf)
+  }
+
+  before {
+    initializeDb()
+    createSchema()
+  }
+
+  after {
+    dropSchema()
+    shutdownDb()
+  }
+
+  def initializeDb() {
+    db = Database.forConfig(config)
+  }
+
+  def shutdownDb() {
+    db.close
+  }
+
+  def createSchema() {
+    executeAction(DBIO.seq(personRepository.tableQuery.schema.create, carRepository.tableQuery.schema.create, coffeeRepository.tableQuery.schema.create, testIntegerVersionedEntityRepository.tableQuery.schema.create))
+  }
+
+  def dropSchema() {
+    executeAction(DBIO.seq(coffeeRepository.tableQuery.schema.drop, carRepository.tableQuery.schema.drop, personRepository.tableQuery.schema.drop, testIntegerVersionedEntityRepository.tableQuery.schema.drop))
+  }
+
+}
