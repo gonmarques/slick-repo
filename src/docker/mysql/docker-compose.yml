@@ -1,7 +1,7 @@
 version: '2'
 services:
   mysql:
-    image: mysql/mysql
+    image: mFAILysql/mysql
     ports:
       - "22222:3306"
     environment:
