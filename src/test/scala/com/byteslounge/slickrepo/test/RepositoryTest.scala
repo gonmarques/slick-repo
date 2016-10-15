@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
+import slick.driver.{H2Driver, MySQLDriver}
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -189,21 +190,18 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     val successCount = new AtomicInteger
     val failureCount = new AtomicInteger
 
-    val newPerson: Person = executeAction(personRepository.save(Person(None, "john")))
+    val person1: Person = executeAction(personRepository.save(Person(None, "john")))
+    val person2: Person = executeAction(personRepository.save(Person(None, "doe")))
 
-    def runnable() = new Runnable() {
+    def runnable(runnableId: Int) = new Runnable() {
       def run() = {
         startLatch.await()
-        val work = for {
-          x <- personRepository.lock(newPerson)
-          y <- DBIO.successful(Thread.sleep(2500))
-        } yield (x, y)
         try{
-          executeAction(personRepository.executeTransactionally(work))
+          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, person2)))
           successCount.incrementAndGet()
         } catch {
-          case sqle: SQLException if sqle.getErrorCode == 50200 => failureCount.incrementAndGet()
-          case e: Exception                                     =>
+          case sqle: SQLException if sqle.getErrorCode == config.rowLockTimeoutError => failureCount.incrementAndGet()
+          case e: Exception                                                          =>
         }
 
         endLatch.countDown()
@@ -213,8 +211,8 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     successCount.get() should equal(0)
     failureCount.get() should equal(0)
 
-    new Thread(runnable()).start()
-    new Thread(runnable()).start()
+    new Thread(runnable(1)).start()
+    new Thread(runnable(2)).start()
 
     Thread.sleep(200)
     startLatch.countDown()
@@ -224,4 +222,22 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     failureCount.get() should equal(1)
   }
 
+  def lockTimeoutWork(runnableId: Int, person1: Person, person2: Person): DBIO[_] = {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    config.driver match {
+      case _: H2Driver =>
+        for {
+          x <- personRepository.lock(person1)
+          y <- DBIO.successful(Thread.sleep(2500))
+        } yield (x, y)
+      case _: MySQLDriver =>
+        for {
+          x <- personRepository.lock(if (runnableId == 1) person1 else person2)
+          y <- DBIO.successful(Thread.sleep(2500))
+          z <- personRepository.lock(if (runnableId == 1) person2 else person1)
+        } yield (x, y, z)
+    }
+  }
 }
