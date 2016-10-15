@@ -2,9 +2,8 @@ package com.byteslounge.slickrepo.test
 
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.repository.TestIntegerVersionedEntity
-import slick.driver.JdbcProfile
 
-abstract class IntegerVersionedRepositoryTest(override val driver: JdbcProfile, override val config: String) extends AbstractRepositoryTest(driver, config) {
+abstract class IntegerVersionedRepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
   "The Integer Versioned Repository" should "save an entity with an initial integer version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global

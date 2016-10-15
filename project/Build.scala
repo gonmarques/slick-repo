@@ -1,5 +1,5 @@
+import sbt.Keys._
 import sbt._
-import Keys._
 
 object Build extends Build {
 
@@ -28,10 +28,24 @@ object Build extends Build {
         testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter))
       )
 
+  lazy val mysql =
+    Project("mysql", file("src/docker/mysql"))
+      .settings(
+        name := "mysql"
+      )
+
+  lazy val oracle =
+    Project("oracle", file("src/docker/oracle"))
+      .settings(
+        name := "oracle"
+      )
+
   val dbPrefixes = Seq("MySQL")
   lazy val AllDbsTest = config("alldbs") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
+
   def allDbsFilter(name: String): Boolean = dbPrefixes.exists(p => testName(name) startsWith p)
+
   def baseFilter(name: String): Boolean = !allDbsFilter(name)
 }

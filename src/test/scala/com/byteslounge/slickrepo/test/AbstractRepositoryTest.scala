@@ -7,8 +7,9 @@ import slick.driver.JdbcProfile
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-abstract class AbstractRepositoryTest(val driver: JdbcProfile, val config: String) extends FlatSpec with BeforeAndAfter with Matchers {
+abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with BeforeAndAfter with Matchers {
 
+  val driver = config.driver
   import driver.api._
 
   var db: Database = _
@@ -33,7 +34,7 @@ abstract class AbstractRepositoryTest(val driver: JdbcProfile, val config: Strin
   }
 
   def initializeDb() {
-    db = Database.forConfig(config)
+    db = Database.forConfig(config.dbConfig)
   }
 
   def shutdownDb() {

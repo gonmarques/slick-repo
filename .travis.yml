@@ -1,1 +1,5 @@
+sudo: required
+services:
+  - docker
 language: scala
+script: ./run.sh
