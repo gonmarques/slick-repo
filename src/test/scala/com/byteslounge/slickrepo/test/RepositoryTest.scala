@@ -182,7 +182,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee.id.get should equal(maxPersonId + 1)
   }
 
-  ignore should "pessimistic lock entities" in {
+  it should "pessimistic lock entities" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val startLatch = new CountDownLatch(1)
     val endLatch = new CountDownLatch(2)
