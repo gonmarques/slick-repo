@@ -7,3 +7,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=SLICKREPO
+  oracle:
+    image: oracle/oracle
+    ports:
+      - "22223:1521"

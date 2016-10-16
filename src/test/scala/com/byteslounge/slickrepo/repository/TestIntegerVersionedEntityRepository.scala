@@ -17,7 +17,7 @@ class TestIntegerVersionedEntityRepository(override val driver: JdbcProfile) ext
   val tableQuery = TableQuery[TestIntegerVersionedEntities]
   type TableType = TestIntegerVersionedEntities
 
-  class TestIntegerVersionedEntities(tag: slick.lifted.Tag) extends Table[TestIntegerVersionedEntity](tag, "TIV_Entity") with Versioned[Int, Int] {
+  class TestIntegerVersionedEntities(tag: slick.lifted.Tag) extends Table[TestIntegerVersionedEntity](tag, "TIV_ENTITY") with Versioned[Int, Int] {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def price = column[Double]("PRICE")
     def version = column[Int]("VERSION")

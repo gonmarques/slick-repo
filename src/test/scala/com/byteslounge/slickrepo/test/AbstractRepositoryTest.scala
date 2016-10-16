@@ -2,7 +2,6 @@ package com.byteslounge.slickrepo.test
 
 import com.byteslounge.slickrepo.repository.{CarRepository, CoffeeRepository, PersonRepository, TestIntegerVersionedEntityRepository}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import slick.driver.JdbcProfile
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

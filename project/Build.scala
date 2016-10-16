@@ -7,6 +7,7 @@ object Build extends Build {
     "com.typesafe.slick" %% "slick" % "3.1.1",
 
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+    "com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test",
     "com.typesafe.slick" %% "slick-hikaricp" % "3.1.1" % "test",
     "com.h2database" % "h2" % "1.4.192" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
@@ -40,7 +41,7 @@ object Build extends Build {
         name := "oracle"
       )
 
-  val dbPrefixes = Seq("MySQL")
+  val dbPrefixes = Seq("MySQL", "Oracle")
   lazy val AllDbsTest = config("alldbs") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
