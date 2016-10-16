@@ -11,3 +11,11 @@ services:
     image: oracle/oracle
     ports:
       - "22223:1521"
+  db2:
+    image: db2/db2
+    ports:
+      - "22224:50000"
+    environment:
+      - DB2INST1_PASSWORD=345TrEdcvb
+      - LICENSE=accept
+    command: bash -c "su - db2inst1 && db2start && db2 create db SLICK"

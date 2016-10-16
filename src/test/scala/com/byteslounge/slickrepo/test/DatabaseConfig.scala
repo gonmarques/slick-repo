@@ -1,5 +1,6 @@
 package com.byteslounge.slickrepo.test
 
+import com.typesafe.slick.driver.db2.DB2Driver
 import com.typesafe.slick.driver.oracle.OracleDriver
 import slick.driver.{H2Driver, JdbcProfile, MySQLDriver}
 
@@ -19,4 +20,8 @@ object MySQLConfig extends DatabaseConfig {
 
 object OracleConfig extends DatabaseConfig {
   override def config: Config = Config(OracleDriver, "oracle", 1, 60)
+}
+
+object DB2Config extends DatabaseConfig {
+  override def config: Config = Config(DB2Driver, "db2", 1, 60)
 }

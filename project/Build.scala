@@ -44,7 +44,13 @@ object Build extends Build {
         name := "oracle"
       )
 
-  val dbPrefixes = Seq("MySQL", "Oracle")
+  lazy val db2 =
+    Project("db2", file("src/docker/db2"))
+      .settings(
+        name := "db2"
+      )
+
+  val dbPrefixes = Seq("MySQL", "Oracle", "DB2")
   lazy val AllDbsTest = config("alldbs") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)

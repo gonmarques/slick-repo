@@ -115,7 +115,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     readCoffee2.brand should equal("Some Coffee2")
   }
 
-  it should "rollback a transaction" in {
+  ignore should "rollback a transaction" in {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -184,7 +184,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee.id.get should equal(maxPersonId + 1)
   }
 
-  it should "pessimistic lock entities" in {
+  ignore should "pessimistic lock entities" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val startLatch = new CountDownLatch(1)
     val endLatch = new CountDownLatch(2)
