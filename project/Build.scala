@@ -3,6 +3,8 @@ import sbt._
 
 object Build extends Build {
 
+  val dependencyResolvers = Seq("Typesafe Maven Repository" at "http://repo.typesafe.com/typesafe/maven-releases/")
+
   val dependencies = Seq(
     "com.typesafe.slick" %% "slick" % "3.1.1",
 
@@ -24,6 +26,7 @@ object Build extends Build {
         scalaVersion := "2.11.8",
         parallelExecution in Test := false,
         libraryDependencies ++= dependencies,
+        resolvers ++= dependencyResolvers,
 
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
         testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter))
