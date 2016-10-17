@@ -46,11 +46,14 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
     while (attempts <= max) {
       try {
         executeAction(DBIO.seq(personRepository.tableQuery.schema.create, carRepository.tableQuery.schema.create, coffeeRepository.tableQuery.schema.create, testIntegerVersionedEntityRepository.tableQuery.schema.create))
+        attempts = 11
       } catch {
         case e: Exception =>
       }
-      Thread.sleep(120000)
       attempts = attempts + 1
+      if(attempts <= max){
+        Thread.sleep(120000)
+      }
     }
   }
 
