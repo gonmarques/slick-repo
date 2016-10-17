@@ -49,6 +49,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
       } catch {
         case e: Exception =>
       }
+      Thread.sleep(120000)
       attempts = attempts + 1
     }
   }
