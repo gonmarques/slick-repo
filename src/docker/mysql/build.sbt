@@ -9,4 +9,3 @@ dockerfile in docker := {
 }
 
 dockerImageCreationTask := docker.value
-composeContainerStartTimeoutSeconds := 2000

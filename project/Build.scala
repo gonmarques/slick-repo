@@ -18,8 +18,9 @@ object Build extends Build {
 
   lazy val project =
     Project("root", file("."))
-      .configs(AllDbsTest)
+      .configs(AllDbsTest, Db2Test)
       .settings(inConfig(AllDbsTest)(Defaults.testTasks): _*)
+      .settings(inConfig(Db2Test)(Defaults.testTasks): _*)
       .settings(
         name := "slick-repo",
         version := "1.0-SNAPSHOT",
@@ -29,6 +30,7 @@ object Build extends Build {
         resolvers ++= dependencyResolvers,
 
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
+        testOptions in Db2Test := Seq(Tests.Filter(db2Filter)),
         testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter))
       )
 
@@ -50,12 +52,16 @@ object Build extends Build {
         name := "db2"
       )
 
-  val dbPrefixes = Seq("MySQL", "Oracle", "DB2")
+  val dbPrefixes = Seq("MySQL", "Oracle")
+  val db2Prefix = Seq("DB2")
   lazy val AllDbsTest = config("alldbs") extend Test
+  lazy val Db2Test = config("db2") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
 
   def allDbsFilter(name: String): Boolean = dbPrefixes.exists(p => testName(name) startsWith p)
 
-  def baseFilter(name: String): Boolean = !allDbsFilter(name)
+  def db2Filter(name: String): Boolean = db2Prefix.exists(p => testName(name) startsWith p)
+
+  def baseFilter(name: String): Boolean = !allDbsFilter(name) && !db2Filter(name)
 }

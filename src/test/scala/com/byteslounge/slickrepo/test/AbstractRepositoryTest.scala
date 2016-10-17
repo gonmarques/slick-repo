@@ -41,7 +41,16 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   }
 
   def createSchema() {
-    executeAction(DBIO.seq(personRepository.tableQuery.schema.create, carRepository.tableQuery.schema.create, coffeeRepository.tableQuery.schema.create, testIntegerVersionedEntityRepository.tableQuery.schema.create))
+    val max: Int = 10
+    var attempts:Int = 1
+    while (attempts <= max) {
+      try {
+        executeAction(DBIO.seq(personRepository.tableQuery.schema.create, carRepository.tableQuery.schema.create, coffeeRepository.tableQuery.schema.create, testIntegerVersionedEntityRepository.tableQuery.schema.create))
+      } catch {
+        case e: Exception =>
+      }
+      attempts = attempts + 1
+    }
   }
 
   def dropSchema() {

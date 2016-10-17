@@ -1,0 +1,10 @@
+version: '2'
+services:
+  db2:
+    image: db2/db2
+    ports:
+      - "22224:50000"
+    environment:
+      - DB2INST1_PASSWORD=345TrEdcvb
+      - LICENSE=accept
+    command: ./start.sh
