@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
+import com.typesafe.slick.driver.db2.DB2Driver
 import com.typesafe.slick.driver.oracle.OracleDriver
 import slick.driver.{H2Driver, MySQLDriver}
 
@@ -115,7 +116,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     readCoffee2.brand should equal("Some Coffee2")
   }
 
-  ignore should "rollback a transaction" in {
+  it should "rollback a transaction" in {
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -184,7 +185,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee.id.get should equal(maxPersonId + 1)
   }
 
-  ignore should "pessimistic lock entities" in {
+  it should "pessimistic lock entities" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val startLatch = new CountDownLatch(1)
     val endLatch = new CountDownLatch(2)
@@ -233,7 +234,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           x <- personRepository.lock(person1)
           y <- DBIO.successful(Thread.sleep(2500))
         } yield (x, y)
-      case _: MySQLDriver | OracleDriver =>
+      case _: MySQLDriver | OracleDriver | DB2Driver =>
         for {
           x <- personRepository.lock(if (runnableId == 1) person1 else person2)
           y <- DBIO.successful(Thread.sleep(2500))

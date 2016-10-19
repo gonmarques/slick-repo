@@ -23,5 +23,5 @@ object OracleConfig extends DatabaseConfig {
 }
 
 object DB2Config extends DatabaseConfig {
-  override def config: Config = Config(DB2Driver, "db2", 1, 60, "select 1 from sysibm.sysdummy1")
+  override def config: Config = Config(DB2Driver, "db2", -803, -911, "select 1 from sysibm.sysdummy1")
 }
