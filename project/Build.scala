@@ -13,6 +13,7 @@ object Build extends Build {
     "com.typesafe.slick" %% "slick-hikaricp" % "3.1.1" % "test",
     "com.h2database" % "h2" % "1.4.192" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
+    "org.postgresql" % "postgresql" % "9.4.1211" % "test",
     "org.slf4j" % "slf4j-simple" % "1.7.21" % "test"
   )
 
@@ -52,7 +53,13 @@ object Build extends Build {
         name := "db2"
       )
 
-  val dbPrefixes = Seq("MySQL", "Oracle")
+  lazy val postgres =
+    Project("postgres", file("src/docker/postgres"))
+      .settings(
+        name := "postgres"
+      )
+
+  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres")
   val db2Prefix = Seq("DB2")
   lazy val AllDbsTest = config("alldbs") extend Test
   lazy val Db2Test = config("db2") extend Test

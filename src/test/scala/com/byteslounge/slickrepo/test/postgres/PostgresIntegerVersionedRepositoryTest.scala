@@ -1,0 +1,5 @@
+package com.byteslounge.slickrepo.test.postgres
+
+import com.byteslounge.slickrepo.test.{IntegerVersionedRepositoryTest, PostgresConfig}
+
+class PostgresIntegerVersionedRepositoryTest extends IntegerVersionedRepositoryTest(PostgresConfig.config)

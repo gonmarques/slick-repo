@@ -11,3 +11,9 @@ services:
     image: oracle/oracle
     ports:
       - "22223:1521"
+  postgres:
+    image: postgres/postgres
+    ports:
+      - "22225:5432"
+    environment:
+      - POSTGRES_PASSWORD=123456

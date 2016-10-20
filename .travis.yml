@@ -6,6 +6,7 @@ script: >
   sbt compile &&
   sbt "project mysql" docker &&
   sbt "project oracle" docker &&
+  sbt "project postgres" docker &&
   sbt "project mysql" dockerComposeUp &&
   sbt test &&
   sbt alldbs:test &&

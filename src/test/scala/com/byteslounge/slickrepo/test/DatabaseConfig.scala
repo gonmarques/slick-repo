@@ -2,7 +2,7 @@ package com.byteslounge.slickrepo.test
 
 import com.typesafe.slick.driver.db2.DB2Driver
 import com.typesafe.slick.driver.oracle.OracleDriver
-import slick.driver.{H2Driver, JdbcProfile, MySQLDriver}
+import slick.driver.{H2Driver, JdbcProfile, MySQLDriver, PostgresDriver}
 
 case class Config(driver: JdbcProfile, dbConfig: String, rollbackTxError: Int, rowLockTimeoutError: Int, validationQuery: String)
 
@@ -24,4 +24,8 @@ object OracleConfig extends DatabaseConfig {
 
 object DB2Config extends DatabaseConfig {
   override def config: Config = Config(DB2Driver, "db2", -803, -911, "select 1 from sysibm.sysdummy1")
+}
+
+object PostgresConfig extends DatabaseConfig {
+  override def config: Config = Config(PostgresDriver, "postgres", 0, 0, "select 1")
 }
