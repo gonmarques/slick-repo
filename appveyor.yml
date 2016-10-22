@@ -16,7 +16,7 @@ install:
       [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null;
       [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null;
       $port = 1433
-      $instancename = "SQL2014"
+      $instancename = "SQL2016"
       $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
       $tcp = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='${instancename}']/ServerProtocol[@Name='Tcp']");
       $tcp.IsEnabled = $true;
