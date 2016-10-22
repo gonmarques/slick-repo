@@ -45,8 +45,6 @@ install:
       } | ConvertTo-Json -Depth 3;
       Write-Host "${config}"
 
-  - bash -v ./installNonPublicDeps
-
 build_script:
   - sbt compile
 
