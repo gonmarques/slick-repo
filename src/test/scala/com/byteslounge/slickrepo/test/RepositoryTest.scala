@@ -74,14 +74,14 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     Seq(person1.id.get, person2.id.get) should equal(userIds)
   }
 
-  it should "update an entity" in {
+  it should "update an entity with manual primary key" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val person: Person = executeAction(personRepository.save(Person(None, "john")))
-    var updatedPerson: Person = person.copy(name = "smith")
-    updatedPerson = executeAction(personRepository.update(updatedPerson))
-    updatedPerson.id.get should equal(person.id.get)
-    val read: Person = executeAction(personRepository.findOne(person.id.get))
-    read.name should equal("smith")
+    val coffee: Coffee = executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "brand1")))
+    var updatedCoffee: Coffee = coffee.copy(brand = "brand2")
+    updatedCoffee = executeAction(coffeeRepository.update(updatedCoffee))
+    updatedCoffee.id.get should equal(coffee.id.get)
+    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get))
+    read.brand should equal("brand2")
   }
 
   it should "execute statements transactionally" in {

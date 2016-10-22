@@ -1,5 +1,5 @@
 package com.byteslounge.slickrepo.test.postgres
 
-import com.byteslounge.slickrepo.test.{IntegerVersionedRepositoryTest, PostgresConfig}
+import com.byteslounge.slickrepo.test.{IntegerVersionedRepositoryAutoPkTest, PostgresConfig}
 
-class PostgresIntegerVersionedRepositoryTest extends IntegerVersionedRepositoryTest(PostgresConfig.config)
+class PostgresIntegerVersionedRepositoryTest extends IntegerVersionedRepositoryAutoPkTest(PostgresConfig.config)

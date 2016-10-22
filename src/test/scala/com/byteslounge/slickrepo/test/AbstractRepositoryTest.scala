@@ -1,6 +1,6 @@
 package com.byteslounge.slickrepo.test
 
-import com.byteslounge.slickrepo.repository.{CarRepository, CoffeeRepository, PersonRepository, TestIntegerVersionedEntityRepository}
+import com.byteslounge.slickrepo.repository._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
@@ -20,6 +20,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val carRepository = new CarRepository(driver)
   val coffeeRepository = new CoffeeRepository(driver)
   val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository(driver)
+  val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
@@ -45,11 +46,27 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   }
 
   def createSchema() {
-    executeAction(DBIO.seq(personRepository.tableQuery.schema.create, carRepository.tableQuery.schema.create, coffeeRepository.tableQuery.schema.create, testIntegerVersionedEntityRepository.tableQuery.schema.create))
+    executeAction(
+      DBIO.seq(
+        personRepository.tableQuery.schema.create,
+        carRepository.tableQuery.schema.create,
+        coffeeRepository.tableQuery.schema.create,
+        testIntegerVersionedEntityRepository.tableQuery.schema.create,
+        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create
+      )
+    )
   }
 
   def dropSchema() {
-    executeAction(DBIO.seq(coffeeRepository.tableQuery.schema.drop, carRepository.tableQuery.schema.drop, personRepository.tableQuery.schema.drop, testIntegerVersionedEntityRepository.tableQuery.schema.drop))
+    executeAction(
+      DBIO.seq(
+        coffeeRepository.tableQuery.schema.drop,
+        carRepository.tableQuery.schema.drop,
+        personRepository.tableQuery.schema.drop,
+        testIntegerVersionedEntityRepository.tableQuery.schema.drop,
+        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop
+      )
+    )
   }
 
   def waitInitialized() = {

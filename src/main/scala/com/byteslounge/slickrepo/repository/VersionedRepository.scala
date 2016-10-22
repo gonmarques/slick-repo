@@ -22,6 +22,11 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
     (saveCompiled += versionedEntity).map(id => versionedEntity.withId(id))
   }
 
+  override def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    val versionedEntity = applyVersion(entity)
+    (tableQueryCompiled += versionedEntity).map(_ => versionedEntity)
+  }
+
   override def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
     findOneVersionedCompiled(versionedEntity.id.get, entity.version.get).update(versionedEntity)

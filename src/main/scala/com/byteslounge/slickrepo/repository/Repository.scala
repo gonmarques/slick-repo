@@ -27,7 +27,7 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   def lock(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val result = findOneCompiled(entity.id.get).result
     result.overrideStatements(
-      Seq(result.statements.head + " FOR UPDATE" + lockingUpdateStatement())
+      Seq(exclusiveLockStatement(result.statements.head))
     ).map(_ => entity)
   }
 
@@ -59,14 +59,15 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
     work.transactionally
   }
 
-  private def lockingUpdateStatement(): String = {
-    driver.getClass.getName match {
-      case n: String if n.contains("DB2") => " WITH RS"
-      case _: String => ""
+  private def exclusiveLockStatement(sql: String): String = {
+    driver.getClass.getSimpleName.toLowerCase match {
+      case n: String if n.contains("db2") => sql + " FOR UPDATE WITH RS"
+      case n: String if n.contains("sqlserver") => sql.replaceFirst(" where ", " WITH (UPDLOCK, ROWLOCK) WHERE ")
+      case _: String => sql + " FOR UPDATE"
     }
   }
 
-  lazy private val tableQueryCompiled = Compiled(tableQuery)
+  lazy protected val tableQueryCompiled = Compiled(tableQuery)
   lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
   lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)

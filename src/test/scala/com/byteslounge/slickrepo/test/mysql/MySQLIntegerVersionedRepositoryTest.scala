@@ -1,5 +1,5 @@
 package com.byteslounge.slickrepo.test.mysql
 
-import com.byteslounge.slickrepo.test.{IntegerVersionedRepositoryTest, MySQLConfig}
+import com.byteslounge.slickrepo.test.{IntegerVersionedRepositoryAutoPkTest, MySQLConfig}
 
-class MySQLIntegerVersionedRepositoryTest extends IntegerVersionedRepositoryTest(MySQLConfig.config)
+class MySQLIntegerVersionedRepositoryTest extends IntegerVersionedRepositoryAutoPkTest(MySQLConfig.config)

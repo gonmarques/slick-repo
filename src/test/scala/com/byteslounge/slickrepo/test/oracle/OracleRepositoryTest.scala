@@ -1,5 +1,5 @@
 package com.byteslounge.slickrepo.test.oracle
 
-import com.byteslounge.slickrepo.test.{OracleConfig, RepositoryTest}
+import com.byteslounge.slickrepo.test.{OracleConfig, RepositoryUpdateAutoPkTest}
 
-class OracleRepositoryTest extends RepositoryTest(OracleConfig.config)
+class OracleRepositoryTest extends RepositoryUpdateAutoPkTest(OracleConfig.config)
