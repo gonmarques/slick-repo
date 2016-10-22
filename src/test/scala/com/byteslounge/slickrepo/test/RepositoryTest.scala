@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
 import com.typesafe.slick.driver.db2.DB2Driver
+import com.typesafe.slick.driver.ms.SQLServerDriver
 import com.typesafe.slick.driver.oracle.OracleDriver
 import slick.driver.{H2Driver, MySQLDriver, PostgresDriver}
 
@@ -131,7 +132,9 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     try {
       executeAction(coffeeRepository.executeTransactionally(work))
     } catch {
-      case sqle: SQLException if sqle.getErrorCode == config.rollbackTxError =>
+      case sqle: SQLException /*if sqle.getErrorCode == config.rollbackTxError*/ => {
+        logger.warn("roll:" + sqle.getErrorCode + "#" + sqle.getSQLState)
+      }
       case e: Exception                                                      => fail
     }
 
@@ -202,7 +205,10 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, person2)))
           successCount.incrementAndGet()
         } catch {
-          case sqle: SQLException if sqle.getErrorCode == config.rowLockTimeoutError => failureCount.incrementAndGet()
+          case sqle: SQLException /*if sqle.getErrorCode == config.rowLockTimeoutError*/ => {
+            logger.warn("pess:" + sqle.getErrorCode + "#" + sqle.getSQLState)
+            failureCount.incrementAndGet()
+          }
           case e: Exception                                                          =>
         }
 
@@ -234,7 +240,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           x <- personRepository.lock(person1)
           y <- DBIO.successful(Thread.sleep(2500))
         } yield (x, y)
-      case _: MySQLDriver | OracleDriver | DB2Driver | PostgresDriver =>
+      case _: MySQLDriver | OracleDriver | DB2Driver | PostgresDriver | SQLServerDriver =>
         for {
           x <- personRepository.lock(if (runnableId == 1) person1 else person2)
           y <- DBIO.successful(Thread.sleep(2500))

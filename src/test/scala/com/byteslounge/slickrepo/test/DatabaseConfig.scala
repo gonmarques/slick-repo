@@ -1,6 +1,7 @@
 package com.byteslounge.slickrepo.test
 
 import com.typesafe.slick.driver.db2.DB2Driver
+import com.typesafe.slick.driver.ms.SQLServerDriver
 import com.typesafe.slick.driver.oracle.OracleDriver
 import slick.driver.{H2Driver, JdbcProfile, MySQLDriver, PostgresDriver}
 
@@ -28,4 +29,8 @@ object DB2Config extends DatabaseConfig {
 
 object PostgresConfig extends DatabaseConfig {
   override def config: Config = Config(PostgresDriver, "postgres", 0, 0, "select 1")
+}
+
+object SQLServerConfig extends DatabaseConfig {
+  override def config: Config = Config(SQLServerDriver, "sqlserver", 0, 0, "select 1")
 }

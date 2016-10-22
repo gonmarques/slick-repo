@@ -1,0 +1,59 @@
+install:
+  - ps: |
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      if (!(Test-Path -Path "C:\sbt" )) {
+        (new-object System.Net.WebClient).DownloadFile(
+          'https://dl.bintray.com/sbt/native-packages/sbt/0.13.11/sbt-0.13.11.zip',
+          'C:\sbt.zip'
+        )
+        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\sbt.zip", "C:\sbt")
+      }
+  - cmd: SET JDK_HOME=C:\Program Files\Java\jdk1.8.0
+  - cmd: SET JAVA_HOME=C:\Program Files\Java\jdk1.8.0
+  - cmd: SET PATH=C:\sbt\sbt\bin;%JDK_HOME%\bin;%PATH%
+  - cmd: SET SBT_OPTS=-Xmx2048m
+  - ps: |
+      [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null;
+      [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null;
+
+      $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
+      $tcp = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='SQL2014']/ServerProtocol[@Name='Tcp']");
+      $tcp.IsEnabled = $true;
+      foreach ($ipAddress in $tcp.IPAddresses)
+      {
+        $ipAddress.IPAddressProperties["TcpDynamicPorts"].Value = ""
+        $ipAddress.IPAddressProperties["TcpPort"].Value = "1433"
+      }
+      $tcp.Alter();
+      Start-Service -Name "MSSQLSQL2014";
+      $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
+      $ipall = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='SQL2014']/ServerProtocol[@Name='Tcp']/IPAddress[@Name='IPAll']");
+      $config = @{
+        instanceName = "SQL2014";
+        config = @{
+          server = "localhost";
+          userName = "sa";
+          password = "345TrEdcvb";
+          options = @{
+            port = "1433";
+            database = "master";
+              cryptoCredentialsDetails = @{
+            ciphers = "RC4-MD5"
+            }
+          }
+        }
+      } | ConvertTo-Json -Depth 3;
+      Write-Host "${config}"
+
+  - bash -v ./installNonPublicDeps
+
+build_script:
+  - sbt compile
+
+test_script:
+  - sbt sqlserver:test
+
+cache:
+  - C:\sbt\
+  - C:\Users\appveyor\.m2
+  - C:\Users\appveyor\.ivy2

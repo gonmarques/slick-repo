@@ -19,9 +19,10 @@ object Build extends Build {
 
   lazy val project =
     Project("root", file("."))
-      .configs(AllDbsTest, Db2Test)
+      .configs(AllDbsTest, Db2Test, SqlServerTest)
       .settings(inConfig(AllDbsTest)(Defaults.testTasks): _*)
       .settings(inConfig(Db2Test)(Defaults.testTasks): _*)
+      .settings(inConfig(SqlServerTest)(Defaults.testTasks): _*)
       .settings(
         name := "slick-repo",
         version := "1.0-SNAPSHOT",
@@ -32,7 +33,8 @@ object Build extends Build {
 
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
         testOptions in Db2Test := Seq(Tests.Filter(db2Filter)),
-        testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter))
+        testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter)),
+        testOptions in SqlServerTest := Seq(Tests.Filter(sqlServerFilter))
       )
 
   lazy val mysql =
@@ -61,8 +63,10 @@ object Build extends Build {
 
   val dbPrefixes = Seq("MySQL", "Oracle", "Postgres")
   val db2Prefix = Seq("DB2")
+  val sqlServerPrefix = Seq("SQLServer")
   lazy val AllDbsTest = config("alldbs") extend Test
   lazy val Db2Test = config("db2") extend Test
+  lazy val SqlServerTest = config("sqlserver") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
 
@@ -70,5 +74,7 @@ object Build extends Build {
 
   def db2Filter(name: String): Boolean = db2Prefix.exists(p => testName(name) startsWith p)
 
-  def baseFilter(name: String): Boolean = !allDbsFilter(name) && !db2Filter(name)
+  def sqlServerFilter(name: String): Boolean = sqlServerPrefix.exists(p => testName(name) startsWith p)
+
+  def baseFilter(name: String): Boolean = !allDbsFilter(name) && !db2Filter(name) && !sqlServerFilter(name)
 }
