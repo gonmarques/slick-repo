@@ -33,8 +33,3 @@ build_script:
 
 test_script:
   - sbt sqlserver:test
-
-cache:
-  - C:\sbt\
-  - C:\Users\appveyor\.m2
-  - C:\Users\appveyor\.ivy2
