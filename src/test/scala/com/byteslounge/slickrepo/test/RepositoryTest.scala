@@ -132,9 +132,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     try {
       executeAction(coffeeRepository.executeTransactionally(work))
     } catch {
-      case sqle: SQLException /*if sqle.getErrorCode == config.rollbackTxError*/ => {
-        logger.warn("roll:" + sqle.getErrorCode + "#" + sqle.getSQLState)
-      }
+      case sqle: SQLException if matchError(sqle, config.rollbackTxError)    =>
       case e: Exception                                                      => fail
     }
 
@@ -205,11 +203,8 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, person2)))
           successCount.incrementAndGet()
         } catch {
-          case sqle: SQLException /*if sqle.getErrorCode == config.rowLockTimeoutError*/ => {
-            logger.warn("pess:" + sqle.getErrorCode + "#" + sqle.getSQLState)
-            failureCount.incrementAndGet()
-          }
-          case e: Exception                                                          =>
+          case sqle: SQLException if matchError(sqle, config.rowLockTimeoutError)  => failureCount.incrementAndGet()
+          case e: Exception                                                        =>
         }
 
         endLatch.countDown()
@@ -248,4 +243,9 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
         } yield (x, y, z)
     }
   }
+
+  private def matchError(exception: SQLException, error: Error): Boolean = {
+    exception.getErrorCode == error.errorCode && exception.getSQLState == error.sqlState
+  }
+
 }
