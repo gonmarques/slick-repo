@@ -37,9 +37,6 @@ install:
           options = @{
             port = "1433";
             database = "master";
-              cryptoCredentialsDetails = @{
-            ciphers = "RC4-MD5"
-            }
           }
         }
       } | ConvertTo-Json -Depth 3;
