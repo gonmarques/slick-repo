@@ -53,7 +53,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   }
 
   def waitInitialized() = {
-    val attempts = 3
+    val attempts = 40
     val sleep = 30000L
     var initialized = false
     (1 to attempts).foreach(
