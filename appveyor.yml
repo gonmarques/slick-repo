@@ -16,7 +16,7 @@ install:
       [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null;
       [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null;
       $port = 1433
-      $instancename = "SQL2008R2SP2"
+      $instancename = "SQL2014"
       $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
       $tcp = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='${instancename}']/ServerProtocol[@Name='Tcp']");
       $tcp.IsEnabled = $true;
@@ -27,24 +27,6 @@ install:
       }
       $tcp.Alter();
       Start-Service -Name "MSSQL`$$instancename";
-      $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
-      $ipall = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='${instancename}']/ServerProtocol[@Name='Tcp']/IPAddress[@Name='IPAll']");
-      $config = @{
-        instanceName = $instancename;
-        config = @{
-          server = "localhost";
-          userName = "sa";
-          password = "345T!Edcvb";
-          options = @{
-            port = ${port};
-            database = "master";
-              cryptoCredentialsDetails = @{
-            ciphers = "RC4-MD5"
-            }
-          }
-        }
-      } | ConvertTo-Json -Depth 3;
-      Write-Host "${config}"
 
 build_script:
   - sbt compile
