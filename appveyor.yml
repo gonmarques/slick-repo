@@ -33,7 +33,7 @@ install:
         config = @{
           server = "localhost";
           userName = "sa";
-          password = "345TrEdcvb";
+          password = "345T!Edcvb";
           options = @{
             port = "1433";
             database = "master";
