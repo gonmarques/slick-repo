@@ -25,7 +25,7 @@ install:
         $ipAddress.IPAddressProperties["TcpPort"].Value = "1433"
       }
       $tcp.Alter();
-      Start-Service -Name "MSSQL$SQL2014";
+      Start-Service -Name "MSSQL`$SQL2014";
       $wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');
       $ipall = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='SQL2014']/ServerProtocol[@Name='Tcp']/IPAddress[@Name='IPAll']");
       $config = @{
