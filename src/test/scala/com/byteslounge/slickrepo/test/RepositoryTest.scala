@@ -36,7 +36,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
   it should "save an entity with a predefined ID" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val coffee: Coffee = executeAction(coffeeRepository.saveWithId(Coffee(Option(78), "Some Coffee")))
+    val coffee: Coffee = executeAction(coffeeRepository.save(Coffee(Option(78), "Some Coffee")))
     val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get))
     coffee.id.get should equal(read.id.get)
   }
@@ -76,7 +76,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
   it should "update an entity with manual primary key" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val coffee: Coffee = executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "brand1")))
+    val coffee: Coffee = executeAction(coffeeRepository.save(Coffee(Option(1), "brand1")))
     var updatedCoffee: Coffee = coffee.copy(brand = "brand2")
     updatedCoffee = executeAction(coffeeRepository.update(updatedCoffee))
     updatedCoffee.id.get should equal(coffee.id.get)
@@ -88,11 +88,11 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
+    executeAction(coffeeRepository.save(Coffee(Option(1), "Some Coffee")))
 
     val work = for {
       readCoffee <- coffeeRepository.findOne(1)
-      otherCoffee <- coffeeRepository.saveWithId(Coffee(Option(2), readCoffee.brand + "2"))
+      otherCoffee <- coffeeRepository.save(Coffee(Option(2), readCoffee.brand + "2"))
       person <- personRepository.save(Person(None, "john"))
     } yield (readCoffee, otherCoffee, person)
 
@@ -121,12 +121,12 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    executeAction(coffeeRepository.saveWithId(Coffee(Option(1), "Some Coffee")))
+    executeAction(coffeeRepository.save(Coffee(Option(1), "Some Coffee")))
 
     val work = for {
       _ <- personRepository.save(Person(None, "john"))
-      _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Some Coffee2"))
-      _ <- coffeeRepository.saveWithId(Coffee(Option(2), "Duplicated ID"))
+      _ <- coffeeRepository.save(Coffee(Option(2), "Some Coffee2"))
+      _ <- coffeeRepository.save(Coffee(Option(2), "Duplicated ID"))
     } yield ()
 
     try {
@@ -176,7 +176,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
     val work = for {
       maxId <- query
-      _ <- coffeeRepository.saveWithId(Coffee(Option(maxId.get + 1), "Some Coffee"))
+      _ <- coffeeRepository.save(Coffee(Option(maxId.get + 1), "Some Coffee"))
     } yield ()
 
     executeAction(coffeeRepository.executeTransactionally(work))

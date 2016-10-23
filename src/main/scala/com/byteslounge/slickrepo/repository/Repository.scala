@@ -36,10 +36,17 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   }
 
   def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    entity.id match {
+      case None    => saveUsingGeneratedId(entity)
+      case Some(_) => saveUsingPredefinedId(entity)
+    }
+  }
+
+  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     (saveCompiled += entity).map(id => entity.withId(id))
   }
 
-  def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+  private def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     (tableQueryCompiled += entity).map(_ => entity)
   }
 

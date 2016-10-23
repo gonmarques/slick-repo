@@ -18,11 +18,18 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
   type TableType <: Versioned[ID, V] with RelationalProfile#Table[T]
 
   override def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    entity.id match {
+      case None    => saveUsingGeneratedId(entity)
+      case Some(_) => saveUsingPredefinedId(entity)
+    }
+  }
+
+  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
     (saveCompiled += versionedEntity).map(id => versionedEntity.withId(id))
   }
 
-  override def saveWithId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+  private def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
     (tableQueryCompiled += versionedEntity).map(_ => versionedEntity)
   }
