@@ -3,7 +3,7 @@ package com.byteslounge.slickrepo.test
 import com.typesafe.slick.driver.db2.DB2Driver
 import com.typesafe.slick.driver.ms.SQLServerDriver
 import com.typesafe.slick.driver.oracle.OracleDriver
-import slick.driver.{H2Driver, JdbcProfile, MySQLDriver, PostgresDriver}
+import slick.driver._
 
 case class Error(errorCode: Int, sqlState: String)
 case class Config(driver: JdbcProfile, dbConfig: String, rollbackTxError: Error, rowLockTimeoutError: Error, validationQuery: String)
@@ -34,4 +34,8 @@ object PostgresConfig extends DatabaseConfig {
 
 object SQLServerConfig extends DatabaseConfig {
   override def config: Config = Config(SQLServerDriver, "sqlserver", Error(2627, "23000"), Error(1205, "40001"), "select 1")
+}
+
+object DerbyConfig extends DatabaseConfig {
+  override def config: Config = Config(DerbyDriver, "derby", Error(20000, "23505"), Error(30000, "40001"), "values 1")
 }

@@ -14,7 +14,8 @@ object Build extends Build {
     "com.h2database" % "h2" % "1.4.192" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
-    "org.slf4j" % "slf4j-simple" % "1.7.21" % "test"
+    "org.slf4j" % "slf4j-simple" % "1.7.21" % "test",
+    "org.apache.derby" % "derby" % "10.11.1.1" % "test"
   )
 
   lazy val project =
@@ -61,7 +62,7 @@ object Build extends Build {
         name := "postgres"
       )
 
-  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres")
+  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby")
   val db2Prefix = Seq("DB2")
   val sqlServerPrefix = Seq("SQLServer")
   lazy val AllDbsTest = config("alldbs") extend Test

@@ -5,10 +5,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
-import com.typesafe.slick.driver.db2.DB2Driver
-import com.typesafe.slick.driver.ms.SQLServerDriver
-import com.typesafe.slick.driver.oracle.OracleDriver
-import slick.driver.{H2Driver, MySQLDriver, PostgresDriver}
+import slick.driver.H2Driver
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -235,7 +232,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           x <- personRepository.lock(person1)
           y <- DBIO.successful(Thread.sleep(2500))
         } yield (x, y)
-      case _: MySQLDriver | OracleDriver | DB2Driver | PostgresDriver | SQLServerDriver =>
+      case _ =>
         for {
           x <- personRepository.lock(if (runnableId == 1) person1 else person2)
           y <- DBIO.successful(Thread.sleep(2500))

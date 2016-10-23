@@ -68,7 +68,7 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
 
   private def exclusiveLockStatement(sql: String): String = {
     driver.getClass.getSimpleName.toLowerCase match {
-      case n: String if n.contains("db2") => sql + " FOR UPDATE WITH RS"
+      case n: String if n.contains("db2") || n.contains("derby") => sql + " FOR UPDATE WITH RS"
       case n: String if n.contains("sqlserver") => sql.replaceFirst(" where ", " WITH (UPDLOCK, ROWLOCK) WHERE ")
       case _: String => sql + " FOR UPDATE"
     }
