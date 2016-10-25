@@ -15,7 +15,8 @@ object Build extends Build {
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
     "org.slf4j" % "slf4j-simple" % "1.7.21" % "test",
-    "org.apache.derby" % "derby" % "10.11.1.1" % "test"
+    "org.apache.derby" % "derby" % "10.11.1.1" % "test",
+    "org.hsqldb" % "hsqldb" % "2.3.4" % "test"
   )
 
   lazy val project =
@@ -62,7 +63,7 @@ object Build extends Build {
         name := "postgres"
       )
 
-  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby")
+  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby", "Hsql")
   val db2Prefix = Seq("DB2")
   val sqlServerPrefix = Seq("SQLServer")
   lazy val AllDbsTest = config("alldbs") extend Test

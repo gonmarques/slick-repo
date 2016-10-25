@@ -5,7 +5,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
-import slick.driver.H2Driver
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -191,13 +190,13 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     val failureCount = new AtomicInteger
 
     val person1: Person = executeAction(personRepository.save(Person(None, "john")))
-    val person2: Person = executeAction(personRepository.save(Person(None, "doe")))
+    val car1: Car = executeAction(carRepository.save(Car(None, "Benz", person1.id.get)))
 
     def runnable(runnableId: Int) = new Runnable() {
       def run() = {
         startLatch.await()
         try{
-          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, person2)))
+          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, car1)))
           successCount.incrementAndGet()
         } catch {
           case sqle: SQLException if matchError(sqle, config.rowLockTimeoutError)  => failureCount.incrementAndGet()
@@ -222,23 +221,13 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     failureCount.get() should equal(1)
   }
 
-  def lockTimeoutWork(runnableId: Int, person1: Person, person2: Person): DBIO[_] = {
-
+  def lockTimeoutWork(runnableId: Int, person1: Person, car1: Car): DBIO[_] = {
     import scala.concurrent.ExecutionContext.Implicits.global
-
-    config.driver match {
-      case _: H2Driver =>
-        for {
-          x <- personRepository.lock(person1)
-          y <- DBIO.successful(Thread.sleep(2500))
-        } yield (x, y)
-      case _ =>
-        for {
-          x <- personRepository.lock(if (runnableId == 1) person1 else person2)
-          y <- DBIO.successful(Thread.sleep(2500))
-          z <- personRepository.lock(if (runnableId == 1) person2 else person1)
-        } yield (x, y, z)
-    }
+    for {
+      x <- if (runnableId == 1) personRepository.lock(person1) else carRepository.lock(car1)
+      y <- DBIO.successful(Thread.sleep(2500))
+      z <- if (runnableId == 1) carRepository.lock(car1) else personRepository.lock(person1)
+    } yield (x, y, z)
   }
 
   private def matchError(exception: SQLException, error: Error): Boolean = {

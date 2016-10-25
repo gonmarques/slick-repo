@@ -39,3 +39,7 @@ object SQLServerConfig extends DatabaseConfig {
 object DerbyConfig extends DatabaseConfig {
   override def config: Config = Config(DerbyDriver, "derby", Error(20000, "23505"), Error(30000, "40001"), "values 1")
 }
+
+object HsqlConfig extends DatabaseConfig {
+  override def config: Config = Config(HsqldbDriver, "hsql", Error(-104, "23505"), Error(-4861, "40001"), "select 1 from INFORMATION_SCHEMA.SYSTEM_USERS")
+}

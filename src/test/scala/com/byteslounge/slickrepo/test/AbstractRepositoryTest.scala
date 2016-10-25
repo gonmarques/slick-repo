@@ -70,14 +70,14 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   }
 
   def waitInitialized() = {
-    val attempts = 40
+    val attempts = 20
     val sleep = 30000L
     var initialized = false
     (1 to attempts).foreach(
       i =>
         try {
           if(!initialized){
-            var query = config.validationQuery
+            val query = config.validationQuery
             executeAction(sql"#$query".as[(Int)].headOption)
             logger.info("Connected to database " + config.dbConfig)
             initialized = true
