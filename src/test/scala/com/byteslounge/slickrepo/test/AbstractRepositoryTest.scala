@@ -21,6 +21,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val coffeeRepository = new CoffeeRepository(driver)
   val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository(driver)
   val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
+  val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
@@ -52,7 +53,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         carRepository.tableQuery.schema.create,
         coffeeRepository.tableQuery.schema.create,
         testIntegerVersionedEntityRepository.tableQuery.schema.create,
-        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create
+        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
+        testLongVersionedEntityRepository.tableQuery.schema.create
       )
     )
   }
@@ -64,7 +66,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         carRepository.tableQuery.schema.drop,
         personRepository.tableQuery.schema.drop,
         testIntegerVersionedEntityRepository.tableQuery.schema.drop,
-        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop
+        testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
+        testLongVersionedEntityRepository.tableQuery.schema.drop
       )
     )
   }
