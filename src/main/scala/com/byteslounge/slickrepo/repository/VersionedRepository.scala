@@ -1,5 +1,8 @@
 package com.byteslounge.slickrepo.repository
 
+import java.sql.Timestamp
+import java.time.Instant
+
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.version.VersionHelper
@@ -55,4 +58,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
 
   lazy private val findOneVersionedCompiled = Compiled((id: Rep[ID], version: Rep[V]) => tableQuery.filter(_.id === id).filter(_.version === version))
 
+  implicit val instantToSqlTimestampMapper = MappedColumnType.base[Instant, Timestamp](
+    { instant => new java.sql.Timestamp(instant.toEpochMilli) },
+    { sqlTimestamp => Instant.ofEpochMilli(sqlTimestamp.getTime) })
 }

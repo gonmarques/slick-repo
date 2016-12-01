@@ -22,6 +22,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository(driver)
   val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
   val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
+  val testInstantVersionedEntityRepository = new TestInstantVersionedEntityRepository(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
@@ -31,6 +32,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
     initializeDb()
     waitInitialized()
     createSchema()
+    prepareTest()
   }
 
   after {
@@ -54,7 +56,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         coffeeRepository.tableQuery.schema.create,
         testIntegerVersionedEntityRepository.tableQuery.schema.create,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
-        testLongVersionedEntityRepository.tableQuery.schema.create
+        testLongVersionedEntityRepository.tableQuery.schema.create,
+        testInstantVersionedEntityRepository.tableQuery.schema.create
       )
     )
   }
@@ -67,12 +70,13 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         personRepository.tableQuery.schema.drop,
         testIntegerVersionedEntityRepository.tableQuery.schema.drop,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
-        testLongVersionedEntityRepository.tableQuery.schema.drop
+        testLongVersionedEntityRepository.tableQuery.schema.drop,
+        testInstantVersionedEntityRepository.tableQuery.schema.drop
       )
     )
   }
 
-  def waitInitialized() = {
+  def waitInitialized() {
     val attempts = 20
     val sleep = 30000L
     var initialized = false
@@ -94,5 +98,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
             }
         }
     )
+  }
+
+  def prepareTest() {
   }
 }
