@@ -1,5 +1,6 @@
 import sbt.Keys._
 import sbt._
+import scoverage.ScoverageKeys._
 
 object Build extends Build {
 
@@ -29,9 +30,11 @@ object Build extends Build {
         name := "slick-repo",
         version := "1.0-SNAPSHOT",
         scalaVersion := "2.11.8",
-        parallelExecution in Test := false,
         libraryDependencies ++= dependencies,
         resolvers ++= dependencyResolvers,
+
+        parallelExecution in Test := false,
+        coverageEnabled := true,
 
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
         testOptions in Db2Test := Seq(Tests.Filter(db2Filter)),
