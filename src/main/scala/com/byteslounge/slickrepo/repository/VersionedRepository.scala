@@ -10,9 +10,11 @@ import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 import slick.profile.RelationalProfile
 
+import scala.reflect.runtime.universe._
+
 import scala.concurrent.ExecutionContext
 
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : TypeTag] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
 
   import driver.api._
 
@@ -44,7 +46,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
   }
 
   private def applyVersion(entity: T): T = {
-    new VersionHelper[T].process(entity)
+    new VersionHelper[T, V].process(entity)
   }
 
   private def updateCheck(updatedEntity: T, expectedVersion: Any): (Int => T) = {

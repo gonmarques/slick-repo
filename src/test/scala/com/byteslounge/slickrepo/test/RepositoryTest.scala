@@ -129,7 +129,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
       executeAction(coffeeRepository.executeTransactionally(work))
     } catch {
       case sqle: SQLException if matchError(sqle, config.rollbackTxError)    =>
-      case e: Exception                                                      => fail
+      case _: Exception                                                      => fail
     }
 
     val cofeeCount: Int = executeAction(coffeeRepository.count())
@@ -189,21 +189,21 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     val successCount = new AtomicInteger
     val failureCount = new AtomicInteger
 
-    val person1: Person = executeAction(personRepository.save(Person(None, "john")))
-    val car1: Car = executeAction(carRepository.save(Car(None, "Benz", person1.id.get)))
+    val person: Person = executeAction(personRepository.save(Person(None, "john")))
+    val car: Car = executeAction(carRepository.save(Car(None, "Benz", person.id.get)))
 
     def runnable(runnableId: Int) = new Runnable() {
-      def run() = {
+      def run(): Unit = {
         startLatch.await()
         try{
-          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person1, car1)))
+          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person, car)))
           successCount.incrementAndGet()
         } catch {
           case sqle: SQLException if matchError(sqle, config.rowLockTimeoutError)  => failureCount.incrementAndGet()
-          case e: Exception                                                        =>
+          case _: Exception                                                        =>
+        } finally {
+          endLatch.countDown()
         }
-
-        endLatch.countDown()
       }
     }
 
@@ -221,12 +221,12 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     failureCount.get() should equal(1)
   }
 
-  def lockTimeoutWork(runnableId: Int, person1: Person, car1: Car): DBIO[_] = {
+  def lockTimeoutWork(runnableId: Int, person: Person, car: Car): DBIO[_] = {
     import scala.concurrent.ExecutionContext.Implicits.global
     for {
-      x <- if (runnableId == 1) personRepository.lock(person1) else carRepository.lock(car1)
+      x <- if (runnableId == 1) personRepository.lock(person) else carRepository.lock(car)
       y <- DBIO.successful(Thread.sleep(2500))
-      z <- if (runnableId == 1) carRepository.lock(car1) else personRepository.lock(person1)
+      z <- if (runnableId == 1) carRepository.lock(car) else personRepository.lock(person)
     } yield (x, y, z)
   }
 

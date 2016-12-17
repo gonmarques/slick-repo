@@ -23,6 +23,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
   val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
   val testInstantVersionedEntityRepository = new TestInstantVersionedEntityRepository(driver)
+  val testJodaTimeVersionedEntityRepository = new TestJodaTimeVersionedEntityRepository(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
@@ -57,7 +58,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedEntityRepository.tableQuery.schema.create,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
         testLongVersionedEntityRepository.tableQuery.schema.create,
-        testInstantVersionedEntityRepository.tableQuery.schema.create
+        testInstantVersionedEntityRepository.tableQuery.schema.create,
+        testJodaTimeVersionedEntityRepository.tableQuery.schema.create
       )
     )
   }
@@ -71,7 +73,8 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedEntityRepository.tableQuery.schema.drop,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
         testLongVersionedEntityRepository.tableQuery.schema.drop,
-        testInstantVersionedEntityRepository.tableQuery.schema.drop
+        testInstantVersionedEntityRepository.tableQuery.schema.drop,
+        testJodaTimeVersionedEntityRepository.tableQuery.schema.drop
       )
     )
   }

@@ -1,0 +1,5 @@
+package com.byteslounge.slickrepo.test.sqlserver
+
+import com.byteslounge.slickrepo.test.{JodaTimeVersionedRepositoryTest, SQLServerConfig}
+
+class SQLServerJodaTimeVersionedRepositoryTest extends JodaTimeVersionedRepositoryTest(SQLServerConfig.config)

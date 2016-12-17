@@ -1,16 +1,37 @@
 package com.byteslounge.slickrepo.version
 
+import java.util.concurrent.ConcurrentHashMap
 
-import com.byteslounge.slickrepo.datetime.DateTimeHelper
-import com.byteslounge.slickrepo.meta.{Entity, InstantVersionedEntity, IntVersionedEntity, LongVersionedEntity}
+import com.byteslounge.slickrepo.meta._
 
-class VersionHelper[T <: Entity[T, _]] {
-  def process(entity: T): T = {
-    entity match {
-      case ive: IntVersionedEntity[T, _] => ive.withVersion(ive.version.map(v => v + 1).getOrElse(1))
-      case lve: LongVersionedEntity[T, _] => lve.withVersion(lve.version.map(v => v + 1).getOrElse(1))
-      case insve: InstantVersionedEntity[T, _] => insve.withVersion(DateTimeHelper.currentInstant)
-      case _                             => throw new IllegalStateException("Versioned Entity version type is not supported: " + entity.getClass.getName)
-    }
+import scala.collection._
+import scala.collection.convert.decorateAsScala._
+
+import scala.reflect.runtime.universe._
+
+class VersionHelper[T <: VersionedEntity[T, _, V], V : TypeTag] {
+  def process(versionedEntity: T): T = {
+    VersionedEntityTypes.process[T, V](versionedEntity)
+  }
+}
+
+object VersionedEntityTypes {
+
+  val versionedTypes: concurrent.Map[String, VersionGenerator[_]]
+    = new ConcurrentHashMap[String, VersionGenerator[_]]().asScala
+
+  {
+    add(new IntVersionGenerator)
+    add(new LongVersionGenerator)
+    add(new InstantVersionGenerator)
+  }
+
+  def add[V : TypeTag](g: VersionGenerator[V]): Unit = {
+    versionedTypes.put(typeOf[V].toString, g)
+  }
+
+  def process[T <: VersionedEntity[T, _, V], V : TypeTag](entity: T): T = {
+    val generator: VersionGenerator[V] = versionedTypes(typeOf[V].toString).asInstanceOf[VersionGenerator[V]]
+    entity.withVersion(entity.version.map(v => generator.nextVersion(v)).getOrElse(generator.initialVersion()))
   }
 }

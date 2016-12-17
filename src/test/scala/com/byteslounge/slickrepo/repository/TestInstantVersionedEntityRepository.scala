@@ -2,11 +2,11 @@ package com.byteslounge.slickrepo.repository
 
 import java.time.Instant
 
-import com.byteslounge.slickrepo.meta.{InstantVersionedEntity, Versioned}
+import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 
-case class TestInstantVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Instant]) extends InstantVersionedEntity[TestInstantVersionedEntity, Int] {
+case class TestInstantVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Instant]) extends VersionedEntity[TestInstantVersionedEntity, Int, Instant] {
   def withId(id: Int): TestInstantVersionedEntity = this.copy(id = Some(id))
   def withVersion(version: Instant): TestInstantVersionedEntity = this.copy(version = Some(version))
 }

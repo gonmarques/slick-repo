@@ -8,6 +8,7 @@ object Build extends Build {
 
   val dependencies = Seq(
     "com.typesafe.slick" %% "slick" % "3.1.1",
+    "org.scala-lang" % "scala-reflect" % "2.11.8",
 
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
     "com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test",
@@ -17,7 +18,8 @@ object Build extends Build {
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
     "org.slf4j" % "slf4j-simple" % "1.7.21" % "test",
     "org.apache.derby" % "derby" % "10.11.1.1" % "test",
-    "org.hsqldb" % "hsqldb" % "2.3.4" % "test"
+    "org.hsqldb" % "hsqldb" % "2.3.4" % "test",
+    "joda-time" % "joda-time" % "2.9.6" % "test"
   )
 
   lazy val project =
