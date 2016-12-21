@@ -8,7 +8,6 @@ object Build extends Build {
 
   val dependencies = Seq(
     "com.typesafe.slick" %% "slick" % "3.1.1",
-    "org.scala-lang" % "scala-reflect" % "2.11.8",
 
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
     "com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test",
@@ -30,9 +29,14 @@ object Build extends Build {
       .settings(inConfig(SqlServerTest)(Defaults.testTasks): _*)
       .settings(
         name := "slick-repo",
-        version := "1.0-SNAPSHOT",
+        version := "1.1.1-SNAPSHOT",
+
         scalaVersion := "2.11.8",
+        crossScalaVersions := Seq("2.11.8", "2.10.6"),
+
         libraryDependencies ++= dependencies,
+        libraryDependencies <++= scalaVersion (version => Seq("org.scala-lang" % "scala-reflect" % version)),
+
         resolvers ++= dependencyResolvers,
 
         parallelExecution in Test := false,
