@@ -20,7 +20,7 @@ import com.byteslounge.slickrepo.meta.VersionEntityImplicits._
 
 case class TestIntegerVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Int]) extends VersionedEntity[TestIntegerVersionedEntity, Int, Int] {
   def withId(id: Int): TestIntegerVersionedEntity = this.copy(id = Some(id))
-  def withVersion(version: Version[Int]): TestIntegerVersionedEntity = this.copy(version = Some(version.current))
+  def withVersion(version: Int): TestIntegerVersionedEntity = this.copy(version = Some(version))
 }
 
 class TestIntegerVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestIntegerVersionedEntity, Int, Int](driver) {

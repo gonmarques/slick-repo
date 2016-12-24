@@ -55,7 +55,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
   }
 
   private def applyVersion(entity: T): T = {
-    entity.withNewVersion(entity.version.map(Version(_)))
+    entity.withNewVersion(entity.version)
   }
 
   private def updateCheck(updatedEntity: T, expectedVersion: Any): (Int => T) = {

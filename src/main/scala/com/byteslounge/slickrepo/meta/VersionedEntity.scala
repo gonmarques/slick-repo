@@ -18,9 +18,9 @@ import java.time.Instant
 import com.byteslounge.slickrepo.datetime.DateTimeHelper
 
 abstract class VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V](val version: Option[V] = None)(implicit nextVersion : (V) => Version[V], initialVersion : () => Version[V]) extends Entity[T, ID] {
-  def withVersion(version: Version[V]): T
-  def withNewVersion(version: Option[Version[V]]): T = withVersion(version.fold(initialVersion()){ v =>
-    nextVersion(v.current)})
+  def withVersion(version: V): T
+  def withNewVersion(version: Option[V]): T = withVersion(version.fold(initialVersion()){ v =>
+    nextVersion(v)}.current)
 }
 
 
