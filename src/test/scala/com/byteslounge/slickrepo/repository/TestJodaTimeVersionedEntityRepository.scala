@@ -11,7 +11,7 @@ import jodaTimeVersionedImplicits._
 
 case class TestJodaTimeVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Instant]) extends VersionedEntity[TestJodaTimeVersionedEntity, Int, Instant] {
   def withId(id: Int): TestJodaTimeVersionedEntity = this.copy(id = Some(id))
-  def withVersion(version: Version[Instant]): TestJodaTimeVersionedEntity = this.copy(version = Some(version.current))
+  def withVersion(version: Instant): TestJodaTimeVersionedEntity = this.copy(version = Some(version))
 }
 
 class TestJodaTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestJodaTimeVersionedEntity, Int, Instant](driver) {
