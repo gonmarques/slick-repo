@@ -17,17 +17,13 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import com.byteslounge.slickrepo.exception.OptimisticLockException
-import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
-import com.byteslounge.slickrepo.version.VersionHelper
+import com.byteslounge.slickrepo.meta.{Version, Versioned, VersionedEntity}
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 import slick.profile.RelationalProfile
-
-import scala.reflect.runtime.universe._
-
 import scala.concurrent.ExecutionContext
 
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : TypeTag] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
 
   import driver.api._
 
@@ -59,7 +55,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : TypeT
   }
 
   private def applyVersion(entity: T): T = {
-    new VersionHelper[T, V].process(entity)
+    entity.withNewVersion(entity.version.map(Version(_)))
   }
 
   private def updateCheck(updatedEntity: T, expectedVersion: Any): (Int => T) = {
