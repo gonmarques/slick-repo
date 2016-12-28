@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
+import slick.driver.H2Driver
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -196,7 +197,14 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
       def run(): Unit = {
         startLatch.await()
         try{
-          executeAction(personRepository.executeTransactionally(lockTimeoutWork(runnableId, person, car)))
+          executeAction(
+            personRepository.executeTransactionally(
+              config.driver match {
+                case _: H2Driver => lockTimeoutWorkH2(person)
+                case _           => lockTimeoutWork(runnableId, person, car)
+              }
+            )
+          )
           successCount.incrementAndGet()
         } catch {
           case sqle: SQLException if matchError(sqle, config.rowLockTimeoutError)  => failureCount.incrementAndGet()
@@ -228,6 +236,14 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
       y <- DBIO.successful(Thread.sleep(2500))
       z <- if (runnableId == 1) carRepository.lock(car) else personRepository.lock(person)
     } yield (x, y, z)
+  }
+
+  def lockTimeoutWorkH2(person: Person): DBIO[_] = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    for {
+      x <- personRepository.lock(person)
+      y <- DBIO.successful(Thread.sleep(1500))
+    } yield (x, y)
   }
 
   private def matchError(exception: SQLException, error: Error): Boolean = {
