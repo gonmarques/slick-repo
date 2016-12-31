@@ -1,6 +1,7 @@
 import sbt.Keys._
 import sbt._
 import scoverage.ScoverageKeys._
+import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends Build {
 
@@ -21,13 +22,14 @@ object Build extends Build {
     "joda-time" % "joda-time" % "2.9.6" % "test"
   )
 
-  lazy val project =
+  lazy val project: Project =
     Project("root", file("."))
       .configs(AllDbsTest, Db2Test, SqlServerTest)
       .settings(inConfig(AllDbsTest)(Defaults.testTasks): _*)
       .settings(inConfig(Db2Test)(Defaults.testTasks): _*)
       .settings(inConfig(SqlServerTest)(Defaults.testTasks): _*)
       .settings(
+
         name := "slick-repo",
         version := "1.1.1-SNAPSHOT",
 
@@ -45,28 +47,64 @@ object Build extends Build {
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
         testOptions in Db2Test := Seq(Tests.Filter(db2Filter)),
         testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter)),
-        testOptions in SqlServerTest := Seq(Tests.Filter(sqlServerFilter))
+        testOptions in SqlServerTest := Seq(Tests.Filter(sqlServerFilter)),
+
+        publishMavenStyle := true,
+        organization:= "com.byteslounge",
+        pomIncludeRepository := { _ => false },
+        publishArtifact in Test := false,
+        publishTo := {
+          val nexus = "https://oss.sonatype.org/"
+          if (isSnapshot.value)
+            Some("snapshots" at nexus + "content/repositories/snapshots")
+          else
+            Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+        },
+        credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+        useGpg := true,
+        pomExtra :=
+          <name>Slick Repository</name>
+          <description>CRUD Repositories for Slick based persistence Scala projects.</description>
+          <url>https://github.com/gonmarques/slick-repo</url>
+          <inceptionYear>2016</inceptionYear>
+          <licenses>
+            <license>
+              <name>The Apache Software License, Version 2.0</name>
+              <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            </license>
+          </licenses>
+          <developers>
+            <developer>
+              <id>gonmarques</id>
+              <name>Gonçalo Marques</name>
+            </developer>
+          </developers>
+          <scm>
+            <url>https://github.com/gonmarques/slick-repo.git</url>
+            <connection>scm:git:git://github.com/gonmarques/slick-repo.git</connection>
+          </scm>
+
       )
 
-  lazy val mysql =
+  lazy val mysql: Project =
     Project("mysql", file("src/docker/mysql"))
       .settings(
         name := "mysql"
       )
 
-  lazy val oracle =
+  lazy val oracle: Project =
     Project("oracle", file("src/docker/oracle"))
       .settings(
         name := "oracle"
       )
 
-  lazy val db2 =
+  lazy val db2: Project =
     Project("db2", file("src/docker/db2"))
       .settings(
         name := "db2"
       )
 
-  lazy val postgres =
+  lazy val postgres: Project =
     Project("postgres", file("src/docker/postgres"))
       .settings(
         name := "postgres"
@@ -75,9 +113,9 @@ object Build extends Build {
   val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby", "Hsql")
   val db2Prefix = Seq("DB2")
   val sqlServerPrefix = Seq("SQLServer")
-  lazy val AllDbsTest = config("alldbs") extend Test
-  lazy val Db2Test = config("db2") extend Test
-  lazy val SqlServerTest = config("sqlserver") extend Test
+  lazy val AllDbsTest: Configuration = config("alldbs") extend Test
+  lazy val Db2Test: Configuration = config("db2") extend Test
+  lazy val SqlServerTest: Configuration = config("sqlserver") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
 
