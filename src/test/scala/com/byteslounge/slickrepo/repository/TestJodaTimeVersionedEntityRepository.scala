@@ -3,10 +3,11 @@ package com.byteslounge.slickrepo.repository
 import java.sql.Timestamp
 
 import com.byteslounge.slickrepo.datetime.DateTimeHelper
-import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
+import com.byteslounge.slickrepo.meta.{VersionGenerator, Versioned, VersionedEntity}
 import org.joda.time.Instant
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
+import TestJodaTimeVersionedEntity._
 
 case class TestJodaTimeVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Instant]) extends VersionedEntity[TestJodaTimeVersionedEntity, Int, Instant] {
   def withId(id: Int): TestJodaTimeVersionedEntity = this.copy(id = Some(id))
@@ -14,7 +15,6 @@ case class TestJodaTimeVersionedEntity(override val id: Option[Int], price: Doub
 }
 
 class TestJodaTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestJodaTimeVersionedEntity, Int, Instant](driver) {
-
   import driver.api._
 
   implicit val jodaTimeInstantToSqlTimestampMapper = MappedColumnType.base[Instant, Timestamp](
@@ -36,16 +36,12 @@ class TestJodaTimeVersionedEntityRepository(override val driver: JdbcProfile) ex
 
 }
 
-object jodaTimeVersionedImplicits {
-  implicit def initialVersion(): Instant = {
-    currentInstant()
-  }
-
-  implicit  def nextVersion(currentVersion: Instant): Instant = {
-    currentInstant()
-  }
-
-  private def currentInstant(): Instant = {
-    new Instant(DateTimeHelper.currentInstant.toEpochMilli)
+object TestJodaTimeVersionedEntity {
+  implicit object jodaInstantVersionGenerator extends VersionGenerator[Instant]{
+    override def init(): Instant = currentInstant()
+    override def next(current: Instant): Instant = currentInstant()
+    private def currentInstant(): Instant = {
+      new Instant(DateTimeHelper.currentInstant.toEpochMilli)
+    }
   }
 }
