@@ -1,4 +1,7 @@
 package com.byteslounge.slickrepo.meta
 
 
-case class Version[T](current : T)
+abstract class VersionGenerator[T](){
+  def init() : T
+  def next(current : T): T
+}
