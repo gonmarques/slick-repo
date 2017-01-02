@@ -13,10 +13,9 @@
 
 package com.byteslounge.slickrepo.repository
 
-import com.byteslounge.slickrepo.meta.{Version, Versioned, VersionedEntity}
+import com.byteslounge.slickrepo.meta.{ Versioned, VersionedEntity}
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
-import com.byteslounge.slickrepo.meta.VersionEntityImplicits._
 
 case class TestLongVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Long]) extends VersionedEntity[TestLongVersionedEntity, Int, Long] {
   def withId(id: Int): TestLongVersionedEntity = this.copy(id = Some(id))
