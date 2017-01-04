@@ -15,7 +15,7 @@ package com.byteslounge.slickrepo.repository
 
 import java.time.Instant
 
-import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
+import com.byteslounge.slickrepo.meta.{ Versioned, VersionedEntity}
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 
