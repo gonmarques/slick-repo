@@ -15,23 +15,49 @@ package com.byteslounge.slickrepo.datetime
 
 import java.time.Instant
 
+/**
+ * Helper used to execute date/time related operations.
+ */
 object DateTimeHelper {
   var dateTimeProvider: DateTimeProvider = DateTimeProvider
+  /**
+  * Sets the underlying [[com.byteslounge.slickrepo.datetime.DateTimeProvider]] implementation
+  * used by the helper.
+  */
   def setDateTimeProvider(dateTimeProvider: DateTimeProvider): Unit = {
     this.dateTimeProvider = dateTimeProvider
   }
+  /**
+  * Gets the current [[java.time.Instant]].
+  */
   def currentInstant: Instant = {
     dateTimeProvider.currentInstant
   }
+  /**
+  * Restores the underlying [[com.byteslounge.slickrepo.datetime.DateTimeProvider]]
+  * used by the helper to the default implementation.
+  */
   def restore(): Unit = {
     dateTimeProvider = DateTimeProvider
   }
 }
 
+/**
+ * Provider used to execute date/time related operations.
+ */
 trait DateTimeProvider {
+  /**
+  * Gets the current [[java.time.Instant]].
+  */
   def currentInstant: Instant
 }
 
+/**
+ * Default [[com.byteslounge.slickrepo.datetime.DateTimeProvider]] implementation.
+ */
 private object DateTimeProvider extends DateTimeProvider {
+  /**
+  * Gets the current [[java.time.Instant]].
+  */
   override def currentInstant: Instant = Instant.now()
 }

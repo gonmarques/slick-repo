@@ -15,10 +15,22 @@ package com.byteslounge.slickrepo.meta
 
 import com.byteslounge.slickrepo.utils.ClassUtils.sameClass
 
+/**
+ * Business entity that is mapped to a database record.
+ */
 abstract class Entity[T <: Entity[T, ID], ID](val id: Option[ID] = None) {
-  
+
+  /**
+  * Sets the identifier for this entity instance.
+  */
   def withId(id: ID): T
 
+  /**
+  * Verifies if a given entity instance is equal to this instance.
+  *
+  * The entities are equal if their classes are the same and their
+  * identifiers are set and equal
+  */
   override def equals(obj: Any): Boolean = {
     obj match {
       case entity: Entity[_, _] if sameClass(this, entity)
@@ -28,9 +40,12 @@ abstract class Entity[T <: Entity[T, ID], ID](val id: Option[ID] = None) {
     }
   }
 
-  override def hashCode() = {
+  /**
+  * Calculates this entity hashcode based on its identifier.
+  */
+  override def hashCode(): Int = {
     id match {
-      case Some(id) => id.hashCode
+      case Some(_) => id.get.hashCode
       case _        => 1
     }
   }

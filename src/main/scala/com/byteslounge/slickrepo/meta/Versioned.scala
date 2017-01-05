@@ -15,6 +15,9 @@ package com.byteslounge.slickrepo.meta
 
 import slick.lifted.Rep
 
+/**
+ * Versioned entity which is identified by a key.
+ */
 trait Versioned[ID, V] extends Keyed[ID] {
   def version: Rep[V]
 }

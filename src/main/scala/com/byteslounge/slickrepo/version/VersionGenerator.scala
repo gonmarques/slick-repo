@@ -13,7 +13,24 @@
 
 package com.byteslounge.slickrepo.version
 
+/**
+ * Version generator used to generate versions for
+ * newly persisted or updated versioned entities.
+ *
+ * The version type is represented by `V` parameter
+ */
 trait VersionGenerator[V] {
+
+  /**
+  * Generates the initial version for the
+  * version type `V`.
+  */
   def initialVersion(): V
+
+  /**
+  * Generates the next version for the version
+  * type `V` based on the current version which
+  * is passed as an argument.
+  */
   def nextVersion(currentVersion: V): V
 }

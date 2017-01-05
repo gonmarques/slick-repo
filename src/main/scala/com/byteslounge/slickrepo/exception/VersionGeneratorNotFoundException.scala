@@ -13,4 +13,8 @@
 
 package com.byteslounge.slickrepo.exception
 
+/**
+ * Exception thrown during entity version generation for a version type
+ * which generator has not been registered.
+ */
 class VersionGeneratorNotFoundException(message: String) extends RuntimeException(message)

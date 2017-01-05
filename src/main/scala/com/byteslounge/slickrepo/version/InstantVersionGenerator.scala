@@ -17,16 +17,34 @@ import java.time.Instant
 
 import com.byteslounge.slickrepo.datetime.DateTimeHelper
 
+/**
+ * Version generator used to generate versions
+ * for newly persisted or updated versioned entities
+ * which version field is of type `Instant`.
+ */
 class InstantVersionGenerator extends VersionGenerator[Instant] {
 
+  /**
+  * Initial version for a version field of type `Instant`.
+  *
+  * The initial value the current time.
+  */
   def initialVersion(): Instant = {
     currentInstant()
   }
 
+  /**
+  * Next version for version field type `Instant`.
+  *
+  * The next version is the current time.
+  */
   def nextVersion(currentVersion: Instant): Instant = {
     currentInstant()
   }
 
+  /**
+  * Returns an `Instant` that represents the current time.
+  */
   private def currentInstant(): Instant = {
     DateTimeHelper.currentInstant
   }

@@ -13,4 +13,8 @@
 
 package com.byteslounge.slickrepo.exception
 
+/**
+ * Exception thrown during an attempt to update an entity which was
+ * updated by another process in the meantime.
+ */
 class OptimisticLockException(message: String) extends RuntimeException(message)

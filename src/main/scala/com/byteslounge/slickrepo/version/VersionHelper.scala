@@ -22,12 +22,31 @@ import scala.collection._
 import scala.collection.convert.decorateAsScala._
 import scala.reflect.runtime.universe._
 
+/**
+ * Helper that aggregates version related operations.
+ */
 class VersionHelper[T <: VersionedEntity[T, _, V], V : TypeTag] {
+
+  /**
+  * Processes the versioned entity and returns a new entity
+  * with the version field updated accordingly.
+  *
+  * If the entity is a new entity that was never persisted,
+  * and its version field is still undefined, then the initial
+  * version will be assigned to the returned entity.
+  *
+  * If the entity already exists in the database and is to
+  * be updated, then its version field will be updated to
+  * the next version.
+  */
   def process(versionedEntity: T): T = {
     VersionedEntityTypes.process[T, V](versionedEntity)
   }
 }
 
+/**
+ * Registry of entity version generators.
+ */
 object VersionedEntityTypes {
 
   val versionedTypes: concurrent.Map[String, VersionGenerator[_]]
@@ -39,10 +58,17 @@ object VersionedEntityTypes {
     add(new InstantVersionGenerator)
   }
 
+  /**
+  * Registers a new version generator for a version type `V`.
+  */
   def add[V : TypeTag](g: VersionGenerator[V]): Unit = {
     versionedTypes.put(typeOf[V].toString, g)
   }
 
+  /**
+  * Processes the entity passed as an argument and returns a
+  * new entity with the version field updated.
+  */
   def process[T <: VersionedEntity[T, _, V], V : TypeTag](entity: T): T = {
     val versionType: String = typeOf[V].toString
     versionedTypes.get(versionType) match {
@@ -53,6 +79,10 @@ object VersionedEntityTypes {
     }
   }
 
+  /**
+  * Generates the error message used when the application requests
+  * a version generator for a type which generator was not registered.
+  */
   private def missingGeneratorMessage(versionType: String): String = {
     val versionGeneratorClassName = classOf[VersionGenerator[_]].getSimpleName
     val versionHelperClassName = classOf[VersionHelper[_, _]].getSimpleName

@@ -13,7 +13,14 @@
 
 package com.byteslounge.slickrepo.utils
 
+/**
+ * Class utilities.
+ */
 trait ClassUtils {
+
+  /**
+  * Returns `true` if the classes of both instance arguments are equal.
+  */
   def sameClass(obj: Any, other: Any): Boolean = {
     obj.getClass == other.getClass
   }

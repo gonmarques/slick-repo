@@ -20,6 +20,10 @@ import slick.profile.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 
+/**
+ * Repository used to execute CRUD operations against a database for
+ * a given entity type.
+ */
 abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
 
   import driver.api._
@@ -29,14 +33,27 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   implicit lazy val _pkType: BaseTypedType[ID] = pkType
   def tableQuery: TableQuery[TableType]
 
+  /**
+  * Finds all entities.
+  */
   def findAll(): DBIO[Seq[T]] = {
     tableQueryCompiled.result
   }
 
+  /**
+  * Finds a given entity by its primary key. If the entity
+  * is not found then an exception will be thrown.
+  *
+  * In order to search for an eventually not existent entity
+  * see [[searchOne()]]
+  */
   def findOne(id: ID): DBIO[T] = {
     findOneCompiled(id).result.head
   }
 
+  /**
+  * Locks an entity using a pessimistic lock.
+  */
   def lock(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val result = findOneCompiled(entity.id.get).result
     result.overrideStatements(
@@ -44,10 +61,25 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
     ).map(_ => entity)
   }
 
+  /**
+  * Searches for an entity by its primary key.
+  */
   def searchOne(id: ID): DBIO[Option[T]] = {
     findOneCompiled(id).result.headOption
   }
 
+  /**
+  * Persists an entity for the first time.
+  *
+  * If the entity has an already assigned primary key, then it will
+  * be persisted with that same primary key.
+  *
+  * If the entity doesn't have an already assigned primary key, then
+  * it will be persisted using an auto-generated primary key using
+  * the generation strategy configured in the entity definition.
+  *
+  * A new entity with the primary key assigned to it will be returned.
+  */
   def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     entity.id match {
       case None    => saveUsingGeneratedId(entity)
@@ -55,30 +87,61 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
     }
   }
 
+  /**
+  * Persists an entity using an auto-generated primary key.
+  */
   private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     (saveCompiled += entity).map(id => entity.withId(id))
   }
 
+  /**
+  * Persists an entity using a predefined primary key.
+  */
   private def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     (tableQueryCompiled += entity).map(_ => entity)
   }
 
+  /**
+  * Updates a given entity in the database.
+  *
+  * If the entity is not yet persisted in the database then
+  * this operation will result in an exception being thrown.
+  *
+  * Returns the same entity instance that was passed in as
+  * an argument.
+  */
   def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     findOneCompiled(entity.id.get).update(entity).map(_ => entity)
   }
 
+  /**
+  * Deletes a given entity from the database.
+  *
+  * If the entity is not yet persisted in the database then
+  * this operation will result in an exception being thrown.
+  */
   def delete(id: ID): DBIO[Int] = {
     findOneCompiled(id).delete
   }
 
+  /**
+  * Counts all entities.
+  */
   def count(): DBIO[Int] = {
     countCompiled.result
   }
 
+  /**
+  * Executes the given unit of work in a single transaction.
+  */
   def executeTransactionally[R](work: DBIO[R]): DBIO[R] = {
     work.transactionally
   }
 
+  /**
+  * Returns the pessimistic lock statement based on the
+  * current database driver type.
+  */
   private def exclusiveLockStatement(sql: String): String = {
     driver.getClass.getSimpleName.toLowerCase match {
       case n: String if n.contains("db2") || n.contains("derby") => sql + " FOR UPDATE WITH RS"

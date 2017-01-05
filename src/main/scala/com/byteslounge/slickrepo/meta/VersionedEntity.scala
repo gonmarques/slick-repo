@@ -13,8 +13,14 @@
 
 package com.byteslounge.slickrepo.meta
 
+/**
+ * Versioned business entity that is mapped to a database record.
+ */
 abstract class VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V](val version: Option[V] = None) extends Entity[T, ID] {
 
+  /**
+  * Sets the version for this versioned entity instance.
+  */
   def withVersion(version: V): T
 
 }

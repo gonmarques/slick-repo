@@ -15,6 +15,9 @@ package com.byteslounge.slickrepo.meta
 
 import slick.lifted.Rep
 
+/**
+ * Entity which is identified by a key.
+ */
 trait Keyed[ID] {
   def id: Rep[ID]
 }

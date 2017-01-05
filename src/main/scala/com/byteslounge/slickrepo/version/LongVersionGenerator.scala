@@ -13,12 +13,29 @@
 
 package com.byteslounge.slickrepo.version
 
+/**
+ * Version generator used to generate versions
+ * for newly persisted or updated versioned entities
+ * which version field is of type `Long`.
+ */
 class LongVersionGenerator extends VersionGenerator[Long] {
 
+  /**
+  * Initial version for a version field of type `Long`.
+  *
+  * The initial value is 1.
+  */
   def initialVersion(): Long = {
     1
   }
 
+  /**
+  * Next version for version field type `Long` based
+  * on a current version.
+  *
+  * The next version is the current version
+  * incremented by 1.
+  */
   def nextVersion(currentVersion: Long): Long = {
     currentVersion + 1
   }
