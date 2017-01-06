@@ -50,7 +50,6 @@ object Build extends Build {
         crossScalaVersions := Seq("2.11.8", "2.10.6"),
 
         libraryDependencies ++= dependencies,
-        libraryDependencies <++= scalaVersion (version => Seq("org.scala-lang" % "scala-reflect" % version)),
 
         resolvers ++= dependencyResolvers,
 

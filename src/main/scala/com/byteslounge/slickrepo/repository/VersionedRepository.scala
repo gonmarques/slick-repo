@@ -18,20 +18,18 @@ import java.time.Instant
 
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
-import com.byteslounge.slickrepo.version.VersionHelper
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcType
 import slick.profile.RelationalProfile
 
-import scala.reflect.runtime.universe._
 import scala.concurrent.ExecutionContext
 
 /**
  * Repository used to execute CRUD operations against a database for
  * a given versioned entity type.
  */
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : TypeTag] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
 
   import driver.api._
 
@@ -102,7 +100,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : TypeT
   * version will be assigned.
   */
   private def applyVersion(entity: T): T = {
-    new VersionHelper[T, V].process(entity)
+    entity.withNewVersion(entity.version)
   }
 
   /**
