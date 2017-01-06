@@ -13,14 +13,19 @@
 
 package com.byteslounge.slickrepo.meta
 
+import com.byteslounge.slickrepo.version.VersionGenerator
+
 /**
  * Versioned business entity that is mapped to a database record.
  */
-abstract class VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V](val version: Option[V] = None) extends Entity[T, ID] {
+abstract class VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V : VersionGenerator](val version: Option[V] = None) extends Entity[T, ID] {
+  val generator = implicitly[VersionGenerator[V]]
 
   /**
   * Sets the version for this versioned entity instance.
   */
   def withVersion(version: V): T
+
+  def withNewVersion(version: Option[V]): T = withVersion(version.map( v => generator.nextVersion(v)).getOrElse(generator.initialVersion()))
 
 }

@@ -13,30 +13,23 @@
 
 package com.byteslounge.slickrepo.version
 
-/**
- * Version generator used to generate versions
- * for newly persisted or updated versioned entities
- * which version field is of type `Int`.
- */
-class IntVersionGenerator extends VersionGenerator[Int] {
+import com.byteslounge.slickrepo.datetime.DateTimeHelper
+import org.joda.time.Instant
 
-  /**
-  * Initial version for a version field of type `Int`.
-  *
-  * The initial value is 1.
-  */
-  def initialVersion(): Int = {
-    1
+object JodaTimeVersionImplicits {
+
+  implicit val instantVersionGenerator = new VersionGenerator[Instant]{
+    def initialVersion(): Instant = {
+      currentInstant()
+    }
+
+    def nextVersion(currentVersion: Instant): Instant = {
+      currentInstant()
+    }
+
+    private def currentInstant(): Instant = {
+      new Instant(DateTimeHelper.currentInstant.toEpochMilli)
+    }
   }
 
-  /**
-  * Next version for version field type `Int` based
-  * on a current version.
-  *
-  * The next version is the current version
-  * incremented by 1.
-  */
-  def nextVersion(currentVersion: Int): Int = {
-    currentVersion + 1
-  }
 }

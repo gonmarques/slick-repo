@@ -13,6 +13,10 @@
 
 package com.byteslounge.slickrepo.version
 
+import java.time.Instant
+
+import com.byteslounge.slickrepo.datetime.DateTimeHelper
+
 /**
  * Version generator used to generate versions for
  * newly persisted or updated versioned entities.
@@ -33,4 +37,33 @@ trait VersionGenerator[V] {
   * is passed as an argument.
   */
   def nextVersion(currentVersion: V): V
+}
+
+/**
+ * Version Generator Implicits
+ */
+object VersionGenerator {
+
+  implicit val intVersionGenerator = new VersionGenerator[Int]{
+    override def initialVersion(): Int = 1
+    override def nextVersion(currentVersion: Int): Int = currentVersion + 1
+  }
+
+  implicit val longVersionGenerator = new VersionGenerator[Long]{
+    override def initialVersion(): Long = 1
+    override def nextVersion(currentVersion: Long): Long = currentVersion + 1
+  }
+
+  implicit val instantVersionGenerator = new VersionGenerator[Instant]{
+    override def initialVersion(): Instant = currentInstant()
+    override def nextVersion(currentVersion: Instant): Instant = currentInstant()
+  }
+
+  /**
+   * Returns an `Instant` that represents the current time.
+   */
+  private def currentInstant(): Instant = {
+    DateTimeHelper.currentInstant
+  }
+
 }

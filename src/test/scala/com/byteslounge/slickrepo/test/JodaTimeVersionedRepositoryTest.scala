@@ -18,13 +18,8 @@ import java.time.Instant
 import com.byteslounge.slickrepo.datetime.MockDateTimeHelper
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.repository.TestJodaTimeVersionedEntity
-import com.byteslounge.slickrepo.version.{JodaTimeVersionGenerator, VersionedEntityTypes}
 
 abstract class JodaTimeVersionedRepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
-
-  {
-    VersionedEntityTypes.add(new JodaTimeVersionGenerator)
-  }
 
   override def prepareTest() {
     MockDateTimeHelper.start()
