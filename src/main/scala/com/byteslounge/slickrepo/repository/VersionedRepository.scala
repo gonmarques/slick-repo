@@ -18,6 +18,7 @@ import java.time.Instant
 
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
+import com.byteslounge.slickrepo.version.VersionGenerator
 import slick.ast.BaseTypedType
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcType
@@ -29,13 +30,14 @@ import scala.concurrent.ExecutionContext
  * Repository used to execute CRUD operations against a database for
  * a given versioned entity type.
  */
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : VersionGenerator] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
 
   import driver.api._
 
   def versionType: BaseTypedType[V]
   implicit lazy val _versionType: BaseTypedType[V] = versionType
   type TableType <: Versioned[ID, V] with RelationalProfile#Table[T]
+  val generator: VersionGenerator[V] = implicitly[VersionGenerator[V]]
 
   /**
   * Persists an entity for the first time and also applies
@@ -100,12 +102,12 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V] (overr
   * version will be assigned.
   */
   private def applyVersion(entity: T): T = {
-    entity.withNewVersion(entity.version)
+    entity.withVersion(entity.version.map(v => generator.nextVersion(v)).getOrElse(generator.initialVersion()))
   }
 
   /**
   * Checks the updated rows count for a given update statement that
-  * was eecuted against a versioned entity record.
+  * was executed against a versioned entity record.
   *
   * If the record count is equal to 1 then the update succeeded. The
   * record with the expected version was found.
