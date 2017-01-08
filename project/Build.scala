@@ -44,7 +44,8 @@ object Build extends Build {
       .settings(
 
         name := "slick-repo",
-        version := "1.1.1-SNAPSHOT",
+        description := "CRUD Repositories for Slick based persistence Scala projects",
+        version := "1.1.1",
 
         scalaVersion := "2.11.8",
         crossScalaVersions := Seq("2.11.8", "2.10.6"),
@@ -75,8 +76,6 @@ object Build extends Build {
         credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
         useGpg := true,
         pomExtra :=
-          <name>Slick Repository</name>
-          <description>CRUD Repositories for Slick based persistence Scala projects.</description>
           <url>https://github.com/gonmarques/slick-repo</url>
           <inceptionYear>2016</inceptionYear>
           <licenses>
@@ -89,8 +88,15 @@ object Build extends Build {
             <developer>
               <id>gonmarques</id>
               <name>Gonçalo Marques</name>
+              <url>https://github.com/gonmarques</url>
             </developer>
           </developers>
+          <contributors>
+            <contributor>
+              <name>Cláudio Diniz</name>
+              <url>https://github.com/cdiniz</url>
+            </contributor>
+          </contributors>
           <scm>
             <url>https://github.com/gonmarques/slick-repo.git</url>
             <connection>scm:git:git://github.com/gonmarques/slick-repo.git</connection>
