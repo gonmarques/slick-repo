@@ -20,7 +20,7 @@ Slick Repositories is an aggregation of common database operations in ready-to-b
 The library releases are available at [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo) for Scala **2.11** and **2.10**. In order to add the library as a dependency to your project:
 
 ```scala
-libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.1.1"
+libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.2.2"
 ```
 
 ## Introduction
