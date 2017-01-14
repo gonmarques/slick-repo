@@ -66,3 +66,60 @@ val coffee: Future[Coffee] = db.run(coffeeRepository.save(Coffee(None, "Espresso
 The repository instance - `coffeeRepository` - may be created only once and reused across the entire application.
 
 The returned coffee instance will have a database auto-generated primary key assigned to its `id` field (we previously configured the entity primary key with Slick's `AutoInc`). **Note**: One may also use predefined primary keys if the Slick entity primary key is not configured as auto-increment. Everything is just plain Slick.
+
+### Defining an implicit executor
+
+It may be convenient to define an implicit database executor in order to avoid writing the `db.run(...)` expression everywhere:
+
+```scala
+object DatabaseExecutor {
+  val db = Database.forConfig("mysql")
+  implicit def executeOperation[T](databaseOperation: DBIO[T]): Future[T] = {
+    db.run(databaseOperation)
+  }
+}
+```
+
+This implicit converter will automatically convert `DBIO` actions returned by the repository into Scala `Futures` by calling `db.run(...)`.
+
+Now it's just a matter of bringing the implicit converter into scope where needed:
+
+```scala
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.byteslounge.slickrepo.test.DatabaseExecutor._
+
+val coffeeRepository = new CoffeeRepository(MySQLDriver)
+val coffee: Future[Coffee] = coffeeRepository.save(Coffee(None, "Espresso"))
+```
+
+If necessary, the implicit converter may be imported only once per class (class level). Or it may be defined inside a trait and let classes that require the converter extend that trait.
+
+Since there are so many different ways to define such an implicit executor, the library does not provide any out-of-the-box.
+
+## Common database operations
+
+The repositories support the following common database operations:
+
+ - `def findAll(): DBIO[Seq[T]]`
+
+ Find all entities
+
+ - `def findOne(id: ID): DBIO[Option[T]]`
+
+ Finds an entity by its primary key.
+
+ - `def count(): DBIO[Int]`
+
+ Counts all entities
+
+ - def save(entity: T): DBIO[T]
+
+ Saves an entity
+
+ - def update(entity: T): DBIO[T]
+
+ Updates an entity
+
+ - def delete(id: ID): DBIO[Int]
+
+ Deletes an entity
