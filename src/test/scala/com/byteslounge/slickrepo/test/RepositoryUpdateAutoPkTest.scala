@@ -23,7 +23,7 @@ abstract class RepositoryUpdateAutoPkTest(override val config: Config) extends R
     var updatedPerson: Person = person.copy(name = "smith")
     updatedPerson = executeAction(personRepository.update(updatedPerson))
     updatedPerson.id.get should equal(person.id.get)
-    val read: Person = executeAction(personRepository.findOne(person.id.get))
+    val read: Person = executeAction(personRepository.findOne(person.id.get)).get
     read.name should equal("smith")
   }
 }

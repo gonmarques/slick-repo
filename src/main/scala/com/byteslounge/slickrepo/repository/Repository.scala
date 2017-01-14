@@ -41,14 +41,10 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   }
 
   /**
-  * Finds a given entity by its primary key. If the entity
-  * is not found then an exception will be thrown.
-  *
-  * In order to search for an eventually not existent entity
-  * see [[searchOne()]]
+  * Finds a given entity by its primary key.
   */
-  def findOne(id: ID): DBIO[T] = {
-    findOneCompiled(id).result.head
+  def findOne(id: ID): DBIO[Option[T]] = {
+    findOneCompiled(id).result.headOption
   }
 
   /**
@@ -59,13 +55,6 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
     result.overrideStatements(
       Seq(exclusiveLockStatement(result.statements.head))
     ).map(_ => entity)
-  }
-
-  /**
-  * Searches for an entity by its primary key.
-  */
-  def searchOne(id: ID): DBIO[Option[T]] = {
-    findOneCompiled(id).result.headOption
   }
 
   /**

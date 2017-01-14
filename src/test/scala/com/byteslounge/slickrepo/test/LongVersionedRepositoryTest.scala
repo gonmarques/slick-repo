@@ -22,18 +22,18 @@ abstract class LongVersionedRepositoryTest(override val config: Config) extends 
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.save(TestLongVersionedEntity(Option(1), 2, None)))
     entity.version.get should equal(1)
-    val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
   }
 
   it should "update an entity (manual pk) incrementing the long version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.save(TestLongVersionedEntity(Option(1), 2, None)))
-    val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
     val updatedEntity = executeAction(testLongVersionedEntityRepository.update(readEntity.copy(price = 3)))
     updatedEntity.version.get should equal(2)
-    val readUpdatedEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get))
+    val readUpdatedEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get)).get
     readUpdatedEntity.version.get should equal(2)
   }
 
@@ -42,7 +42,7 @@ abstract class LongVersionedRepositoryTest(override val config: Config) extends 
     intercept[OptimisticLockException] {
       import scala.concurrent.ExecutionContext.Implicits.global
       val entity: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.save(TestLongVersionedEntity(Option(1), 2, None)))
-      val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get))
+      val readEntity = executeAction(testLongVersionedEntityRepository.findOne(entity.id.get)).get
       readEntity.version.get should equal(1)
 
       val updatedEntity = executeAction(testLongVersionedEntityRepository.update(readEntity.copy(price = 3)))

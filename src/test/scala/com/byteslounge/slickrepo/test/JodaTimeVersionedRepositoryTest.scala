@@ -34,18 +34,18 @@ abstract class JodaTimeVersionedRepositoryTest(override val config: Config) exte
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.save(TestJodaTimeVersionedEntity(Option(1), 2, None)))
     entity.version.get should equal(org.joda.time.Instant.parse("2016-01-03T01:01:02Z"))
-    val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(org.joda.time.Instant.parse("2016-01-03T01:01:02Z"))
   }
 
   it should "update an entity (manual pk) incrementing the Joda Time Instant version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.save(TestJodaTimeVersionedEntity(Option(1), 2, None)))
-    val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(org.joda.time.Instant.parse("2016-01-03T01:01:02Z"))
     val updatedEntity = executeAction(testJodaTimeVersionedEntityRepository.update(readEntity.copy(price = 3)))
     updatedEntity.version.get should equal(org.joda.time.Instant.parse("2016-01-04T01:01:05Z"))
-    val readUpdatedEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get))
+    val readUpdatedEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get)).get
     readUpdatedEntity.version.get should equal(org.joda.time.Instant.parse("2016-01-04T01:01:05Z"))
   }
 
@@ -54,7 +54,7 @@ abstract class JodaTimeVersionedRepositoryTest(override val config: Config) exte
     intercept[OptimisticLockException] {
       import scala.concurrent.ExecutionContext.Implicits.global
       val entity: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.save(TestJodaTimeVersionedEntity(Option(1), 2, None)))
-      val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get))
+      val readEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(entity.id.get)).get
       readEntity.version.get should equal(org.joda.time.Instant.parse("2016-01-03T01:01:02Z"))
 
       val updatedEntity = executeAction(testJodaTimeVersionedEntityRepository.update(readEntity.copy(price = 3)))

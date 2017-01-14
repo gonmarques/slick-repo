@@ -22,18 +22,18 @@ abstract class IntegerVersionedRepositoryTest(override val config: Config) exten
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(Option(1), 2, None)))
     entity.version.get should equal(1)
-    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
   }
 
   it should "update an entity (manual pk) incrementing the integer version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(Option(1), 2, None)))
-    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
     val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))
     updatedEntity.version.get should equal(2)
-    val readUpdatedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+    val readUpdatedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get)).get
     readUpdatedEntity.version.get should equal(2)
   }
 
@@ -42,7 +42,7 @@ abstract class IntegerVersionedRepositoryTest(override val config: Config) exten
     intercept[OptimisticLockException] {
       import scala.concurrent.ExecutionContext.Implicits.global
       val entity: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.save(TestIntegerVersionedEntity(Option(1), 2, None)))
-      val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get))
+      val readEntity = executeAction(testIntegerVersionedEntityRepository.findOne(entity.id.get)).get
       readEntity.version.get should equal(1)
 
       val updatedEntity = executeAction(testIntegerVersionedEntityRepository.update(readEntity.copy(price = 3)))

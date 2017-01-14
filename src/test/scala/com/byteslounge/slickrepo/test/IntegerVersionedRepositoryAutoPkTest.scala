@@ -22,18 +22,18 @@ abstract class IntegerVersionedRepositoryAutoPkTest(override val config: Config)
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestIntegerVersionedAutoPkEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.save(TestIntegerVersionedAutoPkEntity(None, 2, None)))
     entity.version.get should equal(1)
-    val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
   }
 
   it should "update an entity (auto pk) incrementing the integer version field value" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity: TestIntegerVersionedAutoPkEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.save(TestIntegerVersionedAutoPkEntity(None, 2, None)))
-    val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get))
+    val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get)).get
     readEntity.version.get should equal(1)
     val updatedEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.update(readEntity.copy(price = 3)))
     updatedEntity.version.get should equal(2)
-    val readUpdatedEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get))
+    val readUpdatedEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get)).get
     readUpdatedEntity.version.get should equal(2)
   }
 
@@ -42,7 +42,7 @@ abstract class IntegerVersionedRepositoryAutoPkTest(override val config: Config)
       intercept[OptimisticLockException] {
         import scala.concurrent.ExecutionContext.Implicits.global
         val entity: TestIntegerVersionedAutoPkEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.save(TestIntegerVersionedAutoPkEntity(None, 2, None)))
-        val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get))
+        val readEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.findOne(entity.id.get)).get
         readEntity.version.get should equal(1)
 
         val updatedEntity = executeAction(testIntegerVersionedAutoPkEntityRepository.update(readEntity.copy(price = 3)))

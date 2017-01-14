@@ -37,40 +37,33 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     car.id.get should be > 0
   }
 
-  it should "read an entity" in {
+  it should "find an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val person: Person = executeAction(personRepository.save(Person(None, "john")))
-    val read: Person = executeAction(personRepository.findOne(person.id.get))
+    val read: Person = executeAction(personRepository.findOne(person.id.get)).get
     person.id.get should equal(read.id.get)
+  }
+
+  it should "search for an entity that does not exist" in {
+    val read: Option[Person] = executeAction(personRepository.findOne(1))
+    read should equal(None)
   }
 
   it should "save an entity with a predefined ID" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val coffee: Coffee = executeAction(coffeeRepository.save(Coffee(Option(78), "Some Coffee")))
-    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get))
+    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get)).get
     coffee.id.get should equal(read.id.get)
-  }
-
-  it should "search for an existing entity" in {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val person: Person = executeAction(personRepository.save(Person(None, "john")))
-    val read: Option[Person] = executeAction(personRepository.searchOne(person.id.get))
-    person.id.get should equal(read.get.id.get)
-  }
-
-  it should "search for an entity that does not exist" in {
-    val read: Option[Person] = executeAction(personRepository.searchOne(1))
-    read should equal(None)
   }
 
   it should "delete an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val person: Person = executeAction(personRepository.save(Person(None, "john")))
-    val read: Person = executeAction(personRepository.findOne(person.id.get))
+    val read: Person = executeAction(personRepository.findOne(person.id.get)).get
     person.id.get should equal(read.id.get)
     val rowCount: Int = executeAction(personRepository.delete(person.id.get))
     rowCount should equal(1)
-    val readAfterDelete: Option[Person] = executeAction(personRepository.searchOne(person.id.get))
+    val readAfterDelete: Option[Person] = executeAction(personRepository.findOne(person.id.get))
     readAfterDelete should equal(None)
   }
 
@@ -90,7 +83,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     var updatedCoffee: Coffee = coffee.copy(brand = "brand2")
     updatedCoffee = executeAction(coffeeRepository.update(updatedCoffee))
     updatedCoffee.id.get should equal(coffee.id.get)
-    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get))
+    val read: Coffee = executeAction(coffeeRepository.findOne(coffee.id.get)).get
     read.brand should equal("brand2")
   }
 
@@ -102,24 +95,24 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
     val work = for {
       readCoffee <- coffeeRepository.findOne(1)
-      otherCoffee <- coffeeRepository.save(Coffee(Option(2), readCoffee.brand + "2"))
+      otherCoffee <- coffeeRepository.save(Coffee(Option(2), readCoffee.get.brand + "2"))
       person <- personRepository.save(Person(None, "john"))
     } yield (readCoffee, otherCoffee, person)
 
-    val result: (Coffee, Coffee, Person) = executeAction(coffeeRepository.executeTransactionally(work))
+    val result: (Option[Coffee], Coffee, Person) = executeAction(coffeeRepository.executeTransactionally(work))
 
-    result._1.id.get should equal(1)
+    result._1.get.id.get should equal(1)
     result._2.id.get should equal(2)
     result._3.id.get should be > 0
 
     val personCount: Int = executeAction(personRepository.count())
     personCount should equal(1)
-    val readPerson: Person = executeAction(personRepository.findOne(result._3.id.get))
+    val readPerson: Person = executeAction(personRepository.findOne(result._3.id.get)).get
     readPerson.id.get should equal(result._3.id.get)
 
     val coffeeCount: Int = executeAction(coffeeRepository.count())
-    val readCoffee1: Coffee = executeAction(coffeeRepository.findOne(1))
-    val readCoffee2: Coffee = executeAction(coffeeRepository.findOne(2))
+    val readCoffee1: Coffee = executeAction(coffeeRepository.findOne(1)).get
+    val readCoffee2: Coffee = executeAction(coffeeRepository.findOne(2)).get
     coffeeCount should equal(2)
     readCoffee1.id.get should equal(1)
     readCoffee1.brand should equal("Some Coffee")
@@ -148,7 +141,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
 
     val cofeeCount: Int = executeAction(coffeeRepository.count())
     cofeeCount should equal(1)
-    val readCoffee: Coffee = executeAction(coffeeRepository.findOne(1))
+    val readCoffee: Coffee = executeAction(coffeeRepository.findOne(1)).get
     readCoffee.id.get should equal(1)
     val personCount: Int = executeAction(personRepository.count())
     personCount should equal(0)
@@ -192,7 +185,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     executeAction(coffeeRepository.executeTransactionally(work))
 
     val maxPersonId = math.max(person1.id.get, person2.id.get)
-    val coffee: Coffee = executeAction(coffeeRepository.findOne(maxPersonId + 1))
+    val coffee: Coffee = executeAction(coffeeRepository.findOne(maxPersonId + 1)).get
     coffee.id.get should equal(maxPersonId + 1)
   }
 
