@@ -131,7 +131,7 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * Returns the pessimistic lock statement based on the
   * current database driver type.
   */
-  private def exclusiveLockStatement(sql: String): String = {
+  def exclusiveLockStatement(sql: String): String = {
     driver.getClass.getSimpleName.toLowerCase match {
       case n: String if n.contains("db2") || n.contains("derby") => sql + " FOR UPDATE WITH RS"
       case n: String if n.contains("sqlserver") => sql.replaceFirst(" where ", " WITH (UPDLOCK, ROWLOCK) WHERE ")

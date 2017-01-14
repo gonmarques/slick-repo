@@ -189,6 +189,34 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee.id.get should equal(maxPersonId + 1)
   }
 
+  it should "generate pessimistic lock statement for SQLServer" in {
+    val statement: String = "select * from TBL1 where ID = 1"
+    val pessimisticLockStatement: String = new CarRepository(SQLServerConfig.config.driver)
+                                           .exclusiveLockStatement(statement)
+    pessimisticLockStatement should equal ("select * from TBL1 WITH (UPDLOCK, ROWLOCK) WHERE ID = 1")
+  }
+
+  it should "generate pessimistic lock statement for Derby" in {
+    val statement: String = "select * from TBL1 where ID = 1"
+    val pessimisticLockStatement: String = new CarRepository(DerbyConfig.config.driver)
+                                           .exclusiveLockStatement(statement)
+    pessimisticLockStatement should equal ("select * from TBL1 where ID = 1 FOR UPDATE WITH RS")
+  }
+
+  it should "generate pessimistic lock statement for DB2" in {
+    val statement: String = "select * from TBL1 where ID = 1"
+    val pessimisticLockStatement: String = new CarRepository(DB2Config.config.driver)
+                                           .exclusiveLockStatement(statement)
+    pessimisticLockStatement should equal ("select * from TBL1 where ID = 1 FOR UPDATE WITH RS")
+  }
+
+  it should "generate pessimistic lock statement - FOR UPDATE flavor" in {
+    val statement: String = "select * from TBL1 where ID = 1"
+    val pessimisticLockStatement: String = new CarRepository(MySQLConfig.config.driver)
+      .exclusiveLockStatement(statement)
+    pessimisticLockStatement should equal ("select * from TBL1 where ID = 1 FOR UPDATE")
+  }
+
   it should "pessimistic lock entities" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val startLatch = new CountDownLatch(1)
