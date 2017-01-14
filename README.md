@@ -67,7 +67,7 @@ The repository instance - `coffeeRepository` - may be created only once and reus
 
 The returned coffee instance will have a database auto-generated primary key assigned to its `id` field (we previously configured the entity primary key with Slick's `AutoInc`). **Note**: One may also use predefined primary keys if the Slick entity primary key is not configured as auto-increment. Everything is just plain Slick.
 
-### Defining an implicit executor
+## Defining an implicit executor
 
 It may be convenient to define an implicit database executor in order to avoid writing the `db.run(...)` expression everywhere:
 
@@ -112,14 +112,65 @@ The repositories support the following common database operations:
 
  Counts all entities
 
- - def save(entity: T): DBIO[T]
+ - `def save(entity: T): DBIO[T]`
 
  Saves an entity
 
- - def update(entity: T): DBIO[T]
+ - `def update(entity: T): DBIO[T]`
 
  Updates an entity
 
- - def delete(id: ID): DBIO[Int]
+ - `def delete(id: ID): DBIO[Int]`
 
  Deletes an entity
+
+## Custom queries
+
+It is possible to define custom queries or statements inside a repository. Even queries that access multiple tables:
+
+```scala
+class PersonRepository(override val driver: JdbcProfile) extends Repository[Person, Int](driver) {
+
+  import driver.api._
+  val pkType = implicitly[BaseTypedType[Int]]
+  val tableQuery = TableQuery[Persons]
+  type TableType = Persons
+
+  lazy val carRepository = new CarRepository(driver)
+
+  class Persons(tag: slick.lifted.Tag) extends Table[Person](tag, "PERSON") with Keyed[Int] {
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def name = column[String]("NAME")
+
+    def * = (id.?, name) <> ((Person.apply _).tupled, Person.unapply)
+  }
+
+  def findWithCarsOrderByIdAscAndCarIdDesc(): DBIO[Seq[(Person, Car)]] = {
+    (tableQuery
+      join carRepository.tableQuery on (_.id === _.idPerson))
+      .map(x => (x._1, x._2))
+      .sortBy(_._2.id.desc)
+      .sortBy(_._1.id.asc)
+      .result
+  }
+}
+```
+
+Note that every repository has a `tableQuery` field that holds the respective Slick `TableQuery`. Using this field may be useful to write Slick ad-hoc queries.
+
+This example used a `CarRepository` instance declared inside `PersonRepository` in order to conveniently build a query that accesses both tables.
+
+In order to keep the example simple, the custom query that was just implemented is not being pre-compiled by Slick. One should use pre-compiled queries as stated in [Slick Documentation](http://slick.lightbend.com/doc/3.1.1/queries.html). The operations that are provided out-of-the-box by the repositories are all pre-compiled Slick queries.
+
+## Transactions
+
+The repositories also provide a method - `executeTransactionally` - that wraps a unit of work that may be composed by multiple read/write operations within a single database transaction:
+
+```scala
+val work = for {
+  person <- personRepository.save(Person(None, "John"))
+  car <- carRepository.save(Car(None, "Benz", person.id.get))
+} yield (person, car)
+
+val result: Future[(Person, Car)] = db.run(personRepository.executeTransactionally(work))
+```
