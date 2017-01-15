@@ -50,6 +50,8 @@ class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coff
 
 It's a pretty usual Slick entity definition, with the subtle additional detail that we extend `Entity` in the case class. Note how we pass `Coffee` and `Int` as type parameters to the entity class. They represent the entity and the primary key type respectively.
 
+**Note**: By inheriting the `Entity` trait, the entity case class will have to implement method `withId`. As shown in the previous example, the method implementation should return a copy of the current entity instance with the `id` value that is passed as an argument to the method assigned to the entity `id` field.
+
 The repository definition - `CoffeeRepository` - is also very straight forward: One extends `Repository` using the same type parameters as the entity (in this case `Coffee` and `Int`), and expect a `driver` to be passed in when a repository instance is created by the application (more on this later).
 
 Since the Slick table definition (`Coffees`) needs to have a driver instance in scope, we must define it inside the repository. The table definition extends `Keyed` with the primary key type: `Int`.
@@ -174,3 +176,107 @@ val work = for {
 
 val result: Future[(Person, Car)] = db.run(personRepository.executeTransactionally(work))
 ```
+
+## Optimistic locking (versioning)
+
+The repositories also allow the configuration of entities' optimistic locking. If an entity is configured as such, there will be a version field that will be automatically updated every time the entity is updated (and also when the entity is created by the very first time). With every update, the entity version value is also checked if it's still the previous - and expected - value. If not, then another process managed to concurrently update the entity in the meantime which will result in an `OptimisticLockException` being thrown (in order to avoid an update miss).
+
+### Versioning configuration
+
+An entity and its respective repository may be configured for optimistic locking (versioning) like the following example:
+
+```scala
+case class Coffee(override val id: Option[Int], brand: String, override val version: Option[Int]) extends VersionedEntity[Coffee, Int, Int]{
+  def withId(id: Int): Coffee = this.copy(id = Some(id))
+  def withVersion(version: Int): Coffee = this.copy(version = Some(version))
+}
+
+class CoffeeRepository(override val driver: JdbcProfile) extends VersionedRepository[Coffee, Int, Int](driver) {
+
+  import driver.api._
+  val pkType = implicitly[BaseTypedType[Int]]
+  val versionType = implicitly[BaseTypedType[Int]]
+  val tableQuery = TableQuery[Coffees]
+  type TableType = Coffees
+
+  class Coffees(tag: slick.lifted.Tag) extends Table[Coffee](tag, "COFFEE") with Versioned[Int, Int] {
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def brand = column[String]("BRAND")
+    def version = column[Int]("VERSION")
+
+    def * = (id.?, brand, version.?) <> ((Coffee.apply _).tupled, Coffee.unapply)
+  }
+}
+```
+
+Note that now the entity case class extends the `VersionedEntity` trait. This trait has three type parameters, where the first is the entity type (`Coffee`), the second is the primary key type (`Int`) and the third one is the version field type (`Int`).
+
+The application should **never** try to manually set this field. The library is the sole responsible for automatically managing this field value. When creating a new instance of a versioned entity one should set the version field as `None`:
+
+```scala
+val coffee: Coffee = coffeeRepository.save(Coffee(None, "Ristretto", None))
+```
+
+The library will update this field automatically by calling the `withVersion` case class method that the application must define, as it was shown in the previous versioned entity configuration example.
+
+The application must also configure the repository to extend `VersionedRepository` by providing an additional type parameter that represents the version field type, and define the `versionType` field accordingly. Finally it is also required that the Slick table definition extends `Versioned` and provide the version type as a parameter and define the `version` column.
+
+### Supported version types
+
+The following version types are supported out-of-the-box:
+
+ - `Int` - The version field will be an incrementing `Integer` value
+
+ - `Long` - The version field will be an incrementing `Long` value
+
+ - `java.time.Instant` - The version field will be the current UTC timestamp
+
+### Custom version types
+
+The library supports the configuration of custom version types provided by the application. In order to accomplish this, the application is only required to define an implicit version generator and bring it into the scope on the repository.
+
+Supposing a use case where the application needs to version a given entity with a version field of type `String`, and the version value should be a `UUID`:
+
+```scala
+object VersionImplicits {
+
+  implicit val uuidVersionGenerator = new VersionGenerator[String]{
+
+    def initialVersion(): String = {
+      getUUID()
+    }
+
+    def nextVersion(currentVersion: String): String = {
+      getUUID()
+    }
+
+    private def getUUID(): String = {
+      UUID.randomUUID().toString()
+    }
+  }
+}
+```
+
+**Note**: In this case the `nextVersion` method is generating a new version value without taking the current version - `currentVersion` argument - into account. This is because we don't need to use a current UUID in order to generate the next UUID. The same does **not** apply to a version field that consists in an incrementing integer, for instance: in this case the current version value is required to generate the next version value: it should be the current value incremented by one.
+
+Now it should be just a matter of bringing the implicit `uuidVersionGenerator` that was just created into the repository scope:
+
+```scala
+import com.byteslounge.slickrepo.version.VersionImplicits.uuidVersionGenerator
+
+case class StringVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[String]) extends VersionedEntity[StringVersionedEntity, Int, String] {
+  // ...
+}
+
+class StringVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[StringVersionedEntity, Int, String](driver) {
+  // ...
+}
+```
+
+## Pessimistic locking
+
+The repositories provide a method for entity pessimistic locking:
+
+ - def lock(entity: T): DBIO[T]
+
+When such a method is called for a given entity, that entity will be pessimistically - or exclusively - locked for the duration of the current transaction (the transaction where the entity was locked). The lock will be released upon transaction commit or rollback.
