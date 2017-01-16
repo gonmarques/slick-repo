@@ -179,7 +179,9 @@ val result: Future[(Person, Car)] = db.run(personRepository.executeTransactional
 
 ## Optimistic locking (versioning)
 
-The repositories also allow the configuration of entities' optimistic locking. If an entity is configured as such, there will be a version field that will be automatically updated every time the entity is updated (and also when the entity is created by the very first time). With every update, the entity version value is also checked if it's still the previous - and expected - value. If not, then another process managed to concurrently update the entity in the meantime which will result in an `OptimisticLockException` being thrown (in order to avoid an update miss).
+The repositories also allow the configuration of entities' optimistic locking. If an entity is configured as such, there will be a version field that will be automatically updated every time the entity is updated (and also when the entity is created by the very first time).
+
+With every update, the entity version value is also checked if it's still the previous - and expected - value. If not, then another process managed to concurrently update the entity in the meantime which will result in an `OptimisticLockException` being thrown (in order to avoid an update miss).
 
 ### Versioning configuration
 
@@ -217,7 +219,7 @@ The application should **never** try to manually set this field. The library is 
 val coffee: Coffee = coffeeRepository.save(Coffee(None, "Ristretto", None))
 ```
 
-The library will update this field automatically by calling the `withVersion` case class method that the application must define, as it was shown in the previous versioned entity configuration example.
+The library will update this field automatically by calling the `withVersion` case class method that the application must define, as it was shown in the previous versioned entity configuration example. This method's implementation should return a copy of the current entity with its `version` field assigned with the version value that is passed as an argument of the method.
 
 The application must also configure the repository to extend `VersionedRepository` by providing an additional type parameter that represents the version field type, and define the `versionType` field accordingly. Finally it is also required that the Slick table definition extends `Versioned` and provide the version type as a parameter and define the `version` column.
 
@@ -273,10 +275,12 @@ class StringVersionedEntityRepository(override val driver: JdbcProfile) extends 
 }
 ```
 
+A good candidate for such a custom version type would be the requirement of storing the version field using a [Joda-Time](http://www.joda.org/joda-time/) timestamp representation.
+
 ## Pessimistic locking
 
 The repositories provide a method for entity pessimistic locking:
 
- - def lock(entity: T): DBIO[T]
+ - `def lock(entity: T): DBIO[T]`
 
 When such a method is called for a given entity, that entity will be pessimistically - or exclusively - locked for the duration of the current transaction (the transaction where the entity was locked). The lock will be released upon transaction commit or rollback.
