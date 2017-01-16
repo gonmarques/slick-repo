@@ -284,3 +284,9 @@ The repositories provide a method for entity pessimistic locking:
  - `def lock(entity: T): DBIO[T]`
 
 When such a method is called for a given entity, that entity will be pessimistically - or exclusively - locked for the duration of the current transaction (the transaction where the entity was locked). The lock will be released upon transaction commit or rollback.
+
+## Usage examples
+
+### Akka HTTP
+
+ - [slick-akka-http](https://github.com/cdiniz/slick-akka-http)
