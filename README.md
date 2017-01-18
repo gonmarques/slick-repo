@@ -287,6 +287,10 @@ When such a method is called for a given entity, that entity will be pessimistic
 
 ## Usage examples
 
+### Play Framework
+
+ - [play-slick-rest](https://github.com/cdiniz/play-slick-rest)
+
 ### Akka HTTP
 
  - [slick-akka-http](https://github.com/cdiniz/slick-akka-http)
