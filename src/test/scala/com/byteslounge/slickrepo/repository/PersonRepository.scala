@@ -15,7 +15,7 @@ package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Entity, Keyed}
 import slick.ast.BaseTypedType
-import slick.driver.JdbcProfile
+import com.byteslounge.slickrepo.scalaversion.JdbcProfile
 
 case class Person(override val id: Option[Int] = None, name: String) extends Entity[Person, Int]{
   def withId(id: Int): Person = this.copy(id = Some(id))

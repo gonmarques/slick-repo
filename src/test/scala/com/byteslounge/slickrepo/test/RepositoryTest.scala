@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
-import slick.driver.H2Driver
+import com.byteslounge.slickrepo.test.scalaversion.H2Profile
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -234,7 +234,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
           executeAction(
             personRepository.executeTransactionally(
               config.driver match {
-                case _: H2Driver => lockTimeoutWorkH2(person)
+                case _: H2Profile => lockTimeoutWorkH2(person)
                 case _           => lockTimeoutWork(runnableId, person, car)
               }
             )

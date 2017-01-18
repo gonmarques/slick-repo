@@ -15,8 +15,8 @@ package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Entity, Keyed}
 import slick.ast.BaseTypedType
-import slick.driver.JdbcProfile
-import slick.profile.RelationalProfile
+import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+import com.byteslounge.slickrepo.scalaversion.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 

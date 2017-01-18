@@ -21,11 +21,7 @@ object Build extends Build {
   val dependencyResolvers = Seq("Typesafe Maven Repository" at "http://repo.typesafe.com/typesafe/maven-releases/")
 
   val dependencies = Seq(
-    "com.typesafe.slick" %% "slick" % "3.1.1",
-
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-    "com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test",
-    "com.typesafe.slick" %% "slick-hikaricp" % "3.1.1" % "test",
     "com.h2database" % "h2" % "1.4.192" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
@@ -48,9 +44,16 @@ object Build extends Build {
         version := "1.2.3-SNAPSHOT",
 
         scalaVersion := "2.11.8",
-        crossScalaVersions := Seq("2.11.8", "2.10.6"),
+        crossScalaVersions := Seq("2.11.8", "2.12.1", "2.10.6"),
 
         libraryDependencies ++= dependencies,
+        libraryDependencies <++= scalaVersion (
+          version => Seq(
+            getSlickDependency("slick", version),
+            getSlickDependency("slick-hikaricp", version) % "test"
+          ) ++
+          (if (version.startsWith("2.12")) Seq.empty else Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test"))
+        ),
 
         resolvers ++= dependencyResolvers,
 
@@ -144,4 +147,10 @@ object Build extends Build {
   def sqlServerFilter(name: String): Boolean = sqlServerPrefix.exists(p => testName(name) startsWith p)
 
   def baseFilter(name: String): Boolean = !allDbsFilter(name) && !db2Filter(name) && !sqlServerFilter(name)
+
+  def getSlickDependency(slickComponent: String, version: String): ModuleID = {
+    "com.typesafe.slick" %
+    (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
+    (if(version.startsWith("2.12")) {"3.2.0-M2"} else {"3.1.1"})
+  }
 }

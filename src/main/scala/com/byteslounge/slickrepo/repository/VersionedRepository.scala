@@ -20,9 +20,9 @@ import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.version.VersionGenerator
 import slick.ast.BaseTypedType
-import slick.driver.JdbcProfile
+import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+import com.byteslounge.slickrepo.scalaversion.RelationalProfile
 import slick.jdbc.JdbcType
-import slick.profile.RelationalProfile
 
 import scala.concurrent.ExecutionContext
 

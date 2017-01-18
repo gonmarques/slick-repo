@@ -18,7 +18,7 @@ import java.sql.Timestamp
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import org.joda.time.Instant
 import slick.ast.BaseTypedType
-import slick.driver.JdbcProfile
+import com.byteslounge.slickrepo.scalaversion.JdbcProfile
 import com.byteslounge.slickrepo.version.JodaTimeVersionImplicits.instantVersionGenerator
 
 case class TestJodaTimeVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[Instant]) extends VersionedEntity[TestJodaTimeVersionedEntity, Int, Instant] {
