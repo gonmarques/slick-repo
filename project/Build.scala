@@ -52,7 +52,7 @@ object Build extends Build {
 
         name := "slick-repo",
         description := "CRUD Repositories for Slick based persistence Scala projects",
-        version := "1.2.5",
+        version := "1.2.6-SNAPSHOT",
 
         scalaVersion := "2.11.8",
         crossScalaVersions := Seq("2.11.8", "2.12.1", "2.10.6"),
