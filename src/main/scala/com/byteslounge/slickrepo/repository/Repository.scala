@@ -102,6 +102,18 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   }
 
   /**
+  * Performs a batch insert of the entities that are passed in
+  * as an argument. The result will be the number of created
+  * entities in case of a successful batch insert execution
+  * (if the row count is provided by the underlying database
+  * or driver. If not, then `None` will be returned as the
+  * result of a successful batch insert operation).
+  */
+  def batchInsert(entities: Seq[T]): DBIO[Option[Int]] = {
+    tableQueryCompiled ++= entities
+  }
+
+  /**
   * Updates a given entity in the database.
   *
   * If the entity is not yet persisted in the database then

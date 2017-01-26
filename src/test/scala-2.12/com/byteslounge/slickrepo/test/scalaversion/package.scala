@@ -26,6 +26,7 @@ package com.byteslounge.slickrepo.test
 
 package object scalaversion {
   type H2Profile = slick.jdbc.H2Profile
+  type OracleProfile = slick.jdbc.OracleProfile
   val DB2Profile = slick.jdbc.DB2Profile
   val SQLServerProfile = slick.jdbc.SQLServerProfile
   val OracleProfile = slick.jdbc.OracleProfile

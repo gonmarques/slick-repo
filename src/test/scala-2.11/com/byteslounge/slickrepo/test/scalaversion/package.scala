@@ -26,6 +26,7 @@ package com.byteslounge.slickrepo.test
 
 package object scalaversion {
   type H2Profile = slick.driver.H2Driver
+  type OracleProfile = com.typesafe.slick.driver.oracle.OracleDriver
   val DB2Profile = com.typesafe.slick.driver.db2.DB2Driver
   val SQLServerProfile = com.typesafe.slick.driver.ms.SQLServerDriver
   val OracleProfile = com.typesafe.slick.driver.oracle.OracleDriver

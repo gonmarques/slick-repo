@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
 import com.byteslounge.slickrepo.test.scalaversion.H2Profile
+import com.byteslounge.slickrepo.test.scalaversion.OracleProfile
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -164,6 +165,43 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     executeAction(personRepository.save(Person(None, "smith")))
     val count: Int = executeAction(personRepository.count())
     count should equal(2)
+  }
+
+  it should "perform a batch insert of entities with an auto-generated primary key" in {
+    val batchInsertAction = personRepository.batchInsert(
+      Seq(Person(None, "john1"), Person(None, "john2"), Person(None, "john3"))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val person1: Person = executeAction(personRepository.findOne(1)).get
+    val person2: Person = executeAction(personRepository.findOne(2)).get
+    val person3: Person = executeAction(personRepository.findOne(3)).get
+    person1.name should equal("john1")
+    person2.name should equal("john2")
+    person3.name should equal("john3")
+  }
+
+  it should "perform a batch insert of entities with a pre-defined primary key" in {
+    val batchInsertAction = coffeeRepository.batchInsert(
+      Seq(Coffee(Some(1), "Coffee1"), Coffee(Some(2), "Coffee2"), Coffee(Some(3), "Coffee3"))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val coffee1: Coffee = executeAction(coffeeRepository.findOne(1)).get
+    val coffee2: Coffee = executeAction(coffeeRepository.findOne(2)).get
+    val coffee3: Coffee = executeAction(coffeeRepository.findOne(3)).get
+    coffee1.brand should equal("Coffee1")
+    coffee2.brand should equal("Coffee2")
+    coffee3.brand should equal("Coffee3")
+  }
+
+  def assertBatchInsertResult(rowCount: Option[Int]): Unit = {
+    config.driver match {
+      case _: OracleProfile => rowCount should equal(None)
+      case _                => rowCount should equal(Some(3))
+    }
   }
 
   it should "execute custom queries" in {
