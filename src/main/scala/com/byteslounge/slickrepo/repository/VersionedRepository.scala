@@ -51,52 +51,40 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
   val generator: VersionGenerator[V] = implicitly[VersionGenerator[V]]
 
   /**
-  * Persists an entity with its initial version using an auto-generated primary key.
+  * Versioned entity generated ID persister
   */
-  override private[repository] def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    saveUsingGeneratedId(() => applyVersion(entity))
-  }
+  override protected val generatedIdPersister: (T, ExecutionContext) => DBIO[T] =
+    getGeneratedIdPersister(versionApplier)
 
   /**
-  * Persists an entity with its initial version using a predefined primary key.
+  * Versioned entity predefined ID persister
   */
-  override private[repository] def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    saveUsingPredefinedId(() => applyVersion(entity))
-  }
+  override protected val predefinedIdPersister: (T, ExecutionContext) => DBIO[T] =
+    getPredefinedIdPersister(versionApplier)
 
   /**
-  * Performs a batch insert of the entities that are passed in
-  * as an argument. The result will be the number of created
-  * entities in case of a successful batch insert execution
-  * (if the row count is provided by the underlying database
-  * or driver. If not, then `None` will be returned as the
-  * result of a successful batch insert operation).
-  *
-  * All entities will created with the corresponding
-  * initial version.
+  * Batch persister
   */
-  override def batchInsert(entities: Seq[T]): DBIO[Option[Int]] = {
-    batchInsert(() => entities.map(entity => applyVersion(entity)))
-  }
+  override protected val batchPersister: Seq[T] => DBIO[Option[Int]] =
+    getBatchPersister(versionApplier)
 
   /**
-  * Updates a given entity in the database and also the entity
-  * version field.
-  *
-  * If the entity is not yet persisted in the database then
-  * this operation will result in an exception being thrown.
-  *
-  * Returns a new entity instance that has the version field
-  * updated with the next version value.
+  * Updater
   */
-  override def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val versionedEntity = applyVersion(entity)
-    update(
-      findOneVersionedCompiled(versionedEntity.id.get, entity.version.get),
-      versionedEntity,
-      updateCheck(versionedEntity, entity.version.get)
-    )
-  }
+  override protected val updater: (T, F, ExecutionContext) => DBIO[T] =
+    getUpdater(versionApplier)
+
+  /**
+  * Update validator
+  */
+  override protected def updateValidator(previous: T, next: T): Int => T =
+    updateCheck(next, previous.version.get)
+
+  /**
+  * Update finder
+  */
+  override protected def updateFinder(entity: T): F =
+    findOneVersionedCompiled(entity.id.get, entity.version.get)
 
   /**
   * Applies a new version or the next version to a given entity.
@@ -107,9 +95,13 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
   * If the entity already has an assigned version, then the next
   * version will be assigned.
   */
-  private def applyVersion(entity: T): T = {
-    entity.withVersion(entity.version.map(v => generator.nextVersion(v)).getOrElse(generator.initialVersion()))
-  }
+  lazy private val versionApplier: T => T =
+    (entity) =>
+      entity.withVersion(
+        entity.version
+          .map(v => generator.nextVersion(v))
+          .getOrElse(generator.initialVersion())
+      )
 
   /**
   * Checks the updated rows count for a given update statement that

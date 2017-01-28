@@ -25,9 +25,8 @@
 package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Entity, Keyed}
+import com.byteslounge.slickrepo.scalaversion.{JdbcProfile, RelationalProfile}
 import slick.ast.BaseTypedType
-import com.byteslounge.slickrepo.scalaversion.JdbcProfile
-import com.byteslounge.slickrepo.scalaversion.RelationalProfile
 import slick.lifted.AppliedCompiledFunction
 
 import scala.concurrent.ExecutionContext
@@ -44,6 +43,7 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   def pkType: BaseTypedType[ID]
   implicit lazy val _pkType: BaseTypedType[ID] = pkType
   def tableQuery: TableQuery[TableType]
+  type F = AppliedCompiledFunction[_, Query[TableType, T, Seq], Seq[T]]
 
   /**
   * Finds all entities.
@@ -81,42 +81,53 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   *
   * A new entity with the primary key assigned to it will be returned.
   */
-  def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+  def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
     entity.id match {
       case None    => saveUsingGeneratedId(entity)
       case Some(_) => saveUsingPredefinedId(entity)
     }
-  }
 
   /**
   * Persists an entity using an auto-generated primary key.
   */
-  private[repository] def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    saveUsingGeneratedId(() => entity)
-  }
+  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
+    generatedIdPersister(entity, ec)
 
   /**
-  * Helper used while saving an entity with a generated id.
+  * Generated ID persister
   */
-  private[repository] def saveUsingGeneratedId(supplier: () => T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val entity: T = supplier.apply()
-    (saveCompiled += entity).map(id => entity.withId(id))
-  }
+  protected val generatedIdPersister: (T, ExecutionContext) => DBIO[T] =
+    getGeneratedIdPersister(e => e)
+
+  /**
+  * Builds a generated ID persister
+  */
+  protected def getGeneratedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
+    (entity: T, ec: ExecutionContext) => {
+      val transformed = transformer(entity)
+      (saveCompiled += transformed).map(id => transformed.withId(id))(ec)
+    }
 
   /**
   * Persists an entity using a predefined primary key.
   */
-  private[repository] def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    saveUsingPredefinedId(() => entity)
-  }
+  protected def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
+    predefinedIdPersister(entity, ec)
 
   /**
-  * Helper used while saving an entity with a predefined id.
+  * Predefined ID persister
   */
-  private[repository] def saveUsingPredefinedId(supplier: () => T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val entity: T = supplier.apply()
-    (tableQueryCompiled += entity).map(_ => entity)
-  }
+  protected val predefinedIdPersister: (T, ExecutionContext) => DBIO[T] =
+    getPredefinedIdPersister(e => e)
+
+  /**
+  * Builds a predefined ID persister
+  */
+  protected def getPredefinedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
+    (entity: T, ec: ExecutionContext) => {
+      val transformed = transformer(entity)
+      (tableQueryCompiled += transformed).map(_ => transformed)(ec)
+    }
 
   /**
   * Performs a batch insert of the entities that are passed in
@@ -126,16 +137,20 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * or driver. If not, then `None` will be returned as the
   * result of a successful batch insert operation).
   */
-  def batchInsert(entities: Seq[T]): DBIO[Option[Int]] = {
-    batchInsert(() => entities)
-  }
+  def batchInsert(entities: Seq[T]): DBIO[Option[Int]] =
+    batchPersister(entities)
 
   /**
-  * Helper used in batch insert.
+  * Batch persister
   */
-  private[repository] def batchInsert(supplier: () => Seq[T]): DBIO[Option[Int]] = {
-    tableQueryCompiled ++= supplier.apply()
-  }
+  protected val batchPersister: Seq[T] => DBIO[Option[Int]] =
+    getBatchPersister(e => e)
+
+  /**
+  * Builds a batch persister
+  */
+  protected def getBatchPersister(transformer: T => T): Seq[T] => DBIO[Option[Int]] =
+    (entities: Seq[T]) => tableQueryCompiled ++= entities.map(transformer)
 
   /**
   * Updates a given entity in the database.
@@ -146,16 +161,34 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * Returns the same entity instance that was passed in as
   * an argument.
   */
-  def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    update(findOneCompiled(entity.id.get), entity, _ => entity)
-  }
+  def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
+    updater(entity, updateFinder(entity), ec)
 
   /**
-  * Helper used to update an entity.
+  * Update validator
   */
-  private[repository] def update(finder: AppliedCompiledFunction[_, Query[TableType, T, Seq], Seq[T]], entity: T, mapper: Int => T)(implicit ec: ExecutionContext): DBIO[T] = {
-    finder.update(entity).map(mapper)
-  }
+  protected def updateValidator(previous: T, next: T): Int => T = _ => next
+
+  /**
+  * Update finder
+  */
+  protected def updateFinder(entity: T): F =
+    findOneCompiled(entity.id.get)
+
+  /**
+  * Updater
+  */
+  protected val updater: (T, F, ExecutionContext) => DBIO[T] =
+    getUpdater(e => e)
+
+  /**
+  * Builds an updater
+  */
+  protected def getUpdater(transformer: T => T): (T, F, ExecutionContext) => DBIO[T] =
+    (entity: T, finder: F, ec: ExecutionContext) => {
+      val transformed = transformer(entity)
+      finder.update(transformed).map(updateValidator(entity, transformed))(ec)
+    }
 
   /**
   * Deletes a given entity from the database.
