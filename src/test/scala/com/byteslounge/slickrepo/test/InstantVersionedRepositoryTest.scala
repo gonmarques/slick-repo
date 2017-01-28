@@ -76,4 +76,21 @@ abstract class InstantVersionedRepositoryTest(override val config: Config) exten
     exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.repository.TestInstantVersionedEntity. Expected version was not found: 2016-01-03T01:01:02Z")
   }
 
+  it should "perform a batch insert of instant versioned entities" in {
+    val batchInsertAction = testInstantVersionedEntityRepository.batchInsert(
+      Seq(TestInstantVersionedEntity(Option(1), 2.2, None), TestInstantVersionedEntity(Option(2), 3.3, None), TestInstantVersionedEntity(Option(3), 4.4, None))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val entity1: TestInstantVersionedEntity = executeAction(testInstantVersionedEntityRepository.findOne(1)).get
+    val entity2: TestInstantVersionedEntity = executeAction(testInstantVersionedEntityRepository.findOne(2)).get
+    val entity3: TestInstantVersionedEntity = executeAction(testInstantVersionedEntityRepository.findOne(3)).get
+    entity1.price should equal(2.2)
+    entity1.version.get should equal(Instant.parse("2016-01-03T01:01:02Z"))
+    entity2.price should equal(3.3)
+    entity2.version.get should equal(Instant.parse("2016-01-04T01:01:05Z"))
+    entity3.price should equal(4.4)
+    entity3.version.get should equal(Instant.parse("2016-01-05T01:01:07Z"))
+  }
 }

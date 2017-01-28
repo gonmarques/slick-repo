@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.byteslounge.slickrepo.repository._
 import com.byteslounge.slickrepo.test.scalaversion.H2Profile
-import com.byteslounge.slickrepo.test.scalaversion.OracleProfile
 
 abstract class RepositoryTest(override val config: Config) extends AbstractRepositoryTest(config) {
 
@@ -195,13 +194,6 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee1.brand should equal("Coffee1")
     coffee2.brand should equal("Coffee2")
     coffee3.brand should equal("Coffee3")
-  }
-
-  def assertBatchInsertResult(rowCount: Option[Int]): Unit = {
-    config.driver match {
-      case _: OracleProfile => rowCount should equal(None)
-      case _                => rowCount should equal(Some(3))
-    }
   }
 
   it should "execute custom queries" in {

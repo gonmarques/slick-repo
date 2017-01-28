@@ -64,4 +64,21 @@ abstract class LongVersionedRepositoryTest(override val config: Config) extends 
     exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.repository.TestLongVersionedEntity. Expected version was not found: 1")
   }
 
+  it should "perform a batch insert of long versioned entities" in {
+    val batchInsertAction = testLongVersionedEntityRepository.batchInsert(
+      Seq(TestLongVersionedEntity(Option(1), 2.2, None), TestLongVersionedEntity(Option(2), 3.3, None), TestLongVersionedEntity(Option(3), 4.4, None))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val entity1: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.findOne(1)).get
+    val entity2: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.findOne(2)).get
+    val entity3: TestLongVersionedEntity = executeAction(testLongVersionedEntityRepository.findOne(3)).get
+    entity1.price should equal(2.2)
+    entity1.version.get should equal(1)
+    entity2.price should equal(3.3)
+    entity2.version.get should equal(1)
+    entity3.price should equal(4.4)
+    entity3.version.get should equal(1)
+  }
 }

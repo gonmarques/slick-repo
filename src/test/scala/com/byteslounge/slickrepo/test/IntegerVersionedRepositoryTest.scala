@@ -64,4 +64,21 @@ abstract class IntegerVersionedRepositoryTest(override val config: Config) exten
     exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.repository.TestIntegerVersionedEntity. Expected version was not found: 1")
   }
 
+  it should "perform a batch insert of manual pk integer versioned entities" in {
+    val batchInsertAction = testIntegerVersionedEntityRepository.batchInsert(
+      Seq(TestIntegerVersionedEntity(Option(1), 2.2, None), TestIntegerVersionedEntity(Option(2), 3.3, None), TestIntegerVersionedEntity(Option(3), 4.4, None))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val entity1: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(1)).get
+    val entity2: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(2)).get
+    val entity3: TestIntegerVersionedEntity = executeAction(testIntegerVersionedEntityRepository.findOne(3)).get
+    entity1.price should equal(2.2)
+    entity1.version.get should equal(1)
+    entity2.price should equal(3.3)
+    entity2.version.get should equal(1)
+    entity3.price should equal(4.4)
+    entity3.version.get should equal(1)
+  }
 }

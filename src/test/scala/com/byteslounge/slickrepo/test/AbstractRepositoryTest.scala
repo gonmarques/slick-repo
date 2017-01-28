@@ -25,6 +25,7 @@
 package com.byteslounge.slickrepo.test
 
 import com.byteslounge.slickrepo.repository._
+import com.byteslounge.slickrepo.test.scalaversion.OracleProfile
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
@@ -128,5 +129,12 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   }
 
   def prepareTest() {
+  }
+
+  def assertBatchInsertResult(rowCount: Option[Int]): Unit = {
+    config.driver match {
+      case _: OracleProfile => rowCount should equal(None)
+      case _                => rowCount should equal(Some(3))
+    }
   }
 }

@@ -51,40 +51,32 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
   val generator: VersionGenerator[V] = implicitly[VersionGenerator[V]]
 
   /**
-  * Persists an entity for the first time and also applies
-  * an initial version to the entity.
-  *
-  * If the entity has an already assigned primary key, then it will
-  * be persisted with that same primary key.
-  *
-  * If the entity doesn't have an already assigned primary key, then
-  * it will be persisted using an auto-generated primary key using
-  * the generation strategy configured in the entity definition.
-  *
-  * A new entity with both primary key and version assigned to it
-  * will be returned.
-  */
-  override def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    entity.id match {
-      case None    => saveUsingGeneratedId(entity)
-      case Some(_) => saveUsingPredefinedId(entity)
-    }
-  }
-
-  /**
   * Persists an entity with its initial version using an auto-generated primary key.
   */
-  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val versionedEntity = applyVersion(entity)
-    (saveCompiled += versionedEntity).map(id => versionedEntity.withId(id))
+  override private[repository] def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    saveUsingGeneratedId(() => applyVersion(entity))
   }
 
   /**
   * Persists an entity with its initial version using a predefined primary key.
   */
-  private def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val versionedEntity = applyVersion(entity)
-    (tableQueryCompiled += versionedEntity).map(_ => versionedEntity)
+  override private[repository] def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    saveUsingPredefinedId(() => applyVersion(entity))
+  }
+
+  /**
+  * Performs a batch insert of the entities that are passed in
+  * as an argument. The result will be the number of created
+  * entities in case of a successful batch insert execution
+  * (if the row count is provided by the underlying database
+  * or driver. If not, then `None` will be returned as the
+  * result of a successful batch insert operation).
+  *
+  * All entities will created with the corresponding
+  * initial version.
+  */
+  override def batchInsert(entities: Seq[T]): DBIO[Option[Int]] = {
+    batchInsert(() => entities.map(entity => applyVersion(entity)))
   }
 
   /**
@@ -99,8 +91,11 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
   */
   override def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val versionedEntity = applyVersion(entity)
-    findOneVersionedCompiled(versionedEntity.id.get, entity.version.get).update(versionedEntity)
-      .map(updateCheck(versionedEntity, entity.version.get))
+    update(
+      findOneVersionedCompiled(versionedEntity.id.get, entity.version.get),
+      versionedEntity,
+      updateCheck(versionedEntity, entity.version.get)
+    )
   }
 
   /**

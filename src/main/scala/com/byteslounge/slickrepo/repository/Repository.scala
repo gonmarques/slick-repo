@@ -28,6 +28,7 @@ import com.byteslounge.slickrepo.meta.{Entity, Keyed}
 import slick.ast.BaseTypedType
 import com.byteslounge.slickrepo.scalaversion.JdbcProfile
 import com.byteslounge.slickrepo.scalaversion.RelationalProfile
+import slick.lifted.AppliedCompiledFunction
 
 import scala.concurrent.ExecutionContext
 
@@ -90,14 +91,30 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   /**
   * Persists an entity using an auto-generated primary key.
   */
-  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+  private[repository] def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    saveUsingGeneratedId(() => entity)
+  }
+
+  /**
+  * Helper used while saving an entity with a generated id.
+  */
+  private[repository] def saveUsingGeneratedId(supplier: () => T)(implicit ec: ExecutionContext): DBIO[T] = {
+    val entity: T = supplier.apply()
     (saveCompiled += entity).map(id => entity.withId(id))
   }
 
   /**
   * Persists an entity using a predefined primary key.
   */
-  private def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+  private[repository] def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    saveUsingPredefinedId(() => entity)
+  }
+
+  /**
+  * Helper used while saving an entity with a predefined id.
+  */
+  private[repository] def saveUsingPredefinedId(supplier: () => T)(implicit ec: ExecutionContext): DBIO[T] = {
+    val entity: T = supplier.apply()
     (tableQueryCompiled += entity).map(_ => entity)
   }
 
@@ -110,7 +127,14 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * result of a successful batch insert operation).
   */
   def batchInsert(entities: Seq[T]): DBIO[Option[Int]] = {
-    tableQueryCompiled ++= entities
+    batchInsert(() => entities)
+  }
+
+  /**
+  * Helper used in batch insert.
+  */
+  private[repository] def batchInsert(supplier: () => Seq[T]): DBIO[Option[Int]] = {
+    tableQueryCompiled ++= supplier.apply()
   }
 
   /**
@@ -123,7 +147,14 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * an argument.
   */
   def update(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    findOneCompiled(entity.id.get).update(entity).map(_ => entity)
+    update(findOneCompiled(entity.id.get), entity, _ => entity)
+  }
+
+  /**
+  * Helper used to update an entity.
+  */
+  private[repository] def update(finder: AppliedCompiledFunction[_, Query[TableType, T, Seq], Seq[T]], entity: T, mapper: Int => T)(implicit ec: ExecutionContext): DBIO[T] = {
+    finder.update(entity).map(mapper)
   }
 
   /**

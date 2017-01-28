@@ -76,4 +76,21 @@ abstract class JodaTimeVersionedRepositoryTest(override val config: Config) exte
     exception.getMessage should equal("Failed to update entity of type com.byteslounge.slickrepo.repository.TestJodaTimeVersionedEntity. Expected version was not found: 2016-01-03T01:01:02.000Z")
   }
 
+  it should "perform a batch insert of joda time versioned entities" in {
+    val batchInsertAction = testJodaTimeVersionedEntityRepository.batchInsert(
+      Seq(TestJodaTimeVersionedEntity(Option(1), 2.2, None), TestJodaTimeVersionedEntity(Option(2), 3.3, None), TestJodaTimeVersionedEntity(Option(3), 4.4, None))
+    )
+    batchInsertAction.getClass.getName.contains("MultiInsertAction") should equal(true)
+    val rowCount = executeAction(batchInsertAction)
+    assertBatchInsertResult(rowCount)
+    val entity1: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(1)).get
+    val entity2: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(2)).get
+    val entity3: TestJodaTimeVersionedEntity = executeAction(testJodaTimeVersionedEntityRepository.findOne(3)).get
+    entity1.price should equal(2.2)
+    entity1.version.get should equal(org.joda.time.Instant.parse("2016-01-03T01:01:02Z"))
+    entity2.price should equal(3.3)
+    entity2.version.get should equal(org.joda.time.Instant.parse("2016-01-04T01:01:05Z"))
+    entity3.price should equal(4.4)
+    entity3.version.get should equal(org.joda.time.Instant.parse("2016-01-05T01:01:07Z"))
+  }
 }
