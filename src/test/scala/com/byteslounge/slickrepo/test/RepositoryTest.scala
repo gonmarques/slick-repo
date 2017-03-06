@@ -56,6 +56,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
   }
 
   it should "search for an entity that does not exist" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val read: Option[Person] = executeAction(personRepository.findOne(1))
     read should equal(None)
   }
@@ -72,8 +73,8 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     val person: Person = executeAction(personRepository.save(Person(None, "john")))
     val read: Person = executeAction(personRepository.findOne(person.id.get)).get
     person.id.get should equal(read.id.get)
-    val rowCount: Int = executeAction(personRepository.delete(person.id.get))
-    rowCount should equal(1)
+    val deleted: Person = executeAction(personRepository.delete(person))
+    deleted.id.get should equal(read.id.get)
     val readAfterDelete: Option[Person] = executeAction(personRepository.findOne(person.id.get))
     readAfterDelete should equal(None)
   }
@@ -167,6 +168,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
   }
 
   it should "perform a batch insert of entities with an auto-generated primary key" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = personRepository.batchInsert(
       Seq(Person(None, "john1"), Person(None, "john2"), Person(None, "john3"))
     )
@@ -182,6 +184,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
   }
 
   it should "perform a batch insert of entities with a pre-defined primary key" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = coffeeRepository.batchInsert(
       Seq(Coffee(Some(1), "Coffee1"), Coffee(Some(2), "Coffee2"), Coffee(Some(3), "Coffee3"))
     )

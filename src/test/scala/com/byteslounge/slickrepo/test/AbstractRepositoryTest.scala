@@ -49,6 +49,12 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
   val testInstantVersionedEntityRepository = new TestInstantVersionedEntityRepository(driver)
   val testJodaTimeVersionedEntityRepository = new TestJodaTimeVersionedEntityRepository(driver)
+  val lifecycleEntityRepositoryPostLoad = new LifecycleEntityRepositoryPostLoad(driver)
+  val lifecycleEntityRepositoryPrePersistAutoPk = new LifecycleEntityRepositoryPrePersistAutoPk(driver)
+  val lifecycleEntityRepositoryManualPk = new LifecycleEntityRepositoryManualPk(driver)
+  val lifecycleVersionedEntityRepositoryPostLoad = new LifecycleVersionedEntityRepositoryPostLoad(driver)
+  val lifecycleVersionedEntityRepositoryPrePersistAutoPk = new LifecycleVersionedEntityRepositoryPrePersistAutoPk(driver)
+  val lifecycleVersionedEntityRepositoryManualPk = new LifecycleVersionedEntityRepositoryManualPk(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)
@@ -84,7 +90,11 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
         testLongVersionedEntityRepository.tableQuery.schema.create,
         testInstantVersionedEntityRepository.tableQuery.schema.create,
-        testJodaTimeVersionedEntityRepository.tableQuery.schema.create
+        testJodaTimeVersionedEntityRepository.tableQuery.schema.create,
+        lifecycleEntityRepositoryPostLoad.tableQuery.schema.create,
+        lifecycleVersionedEntityRepositoryPostLoad.tableQuery.schema.create,
+        lifecycleEntityRepositoryManualPk.tableQuery.schema.create,
+        lifecycleVersionedEntityRepositoryManualPk.tableQuery.schema.create
       )
     )
   }
@@ -99,7 +109,11 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
         testLongVersionedEntityRepository.tableQuery.schema.drop,
         testInstantVersionedEntityRepository.tableQuery.schema.drop,
-        testJodaTimeVersionedEntityRepository.tableQuery.schema.drop
+        testJodaTimeVersionedEntityRepository.tableQuery.schema.drop,
+        lifecycleEntityRepositoryPostLoad.tableQuery.schema.drop,
+        lifecycleVersionedEntityRepositoryPostLoad.tableQuery.schema.drop,
+        lifecycleEntityRepositoryManualPk.tableQuery.schema.drop,
+        lifecycleVersionedEntityRepositoryManualPk.tableQuery.schema.drop
       )
     )
   }

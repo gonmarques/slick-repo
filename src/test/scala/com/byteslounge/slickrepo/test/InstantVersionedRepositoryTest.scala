@@ -77,6 +77,7 @@ abstract class InstantVersionedRepositoryTest(override val config: Config) exten
   }
 
   it should "perform a batch insert of instant versioned entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = testInstantVersionedEntityRepository.batchInsert(
       Seq(TestInstantVersionedEntity(Option(1), 2.2, None), TestInstantVersionedEntity(Option(2), 3.3, None), TestInstantVersionedEntity(Option(3), 4.4, None))
     )

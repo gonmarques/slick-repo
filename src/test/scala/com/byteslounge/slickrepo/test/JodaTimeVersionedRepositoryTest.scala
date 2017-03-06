@@ -77,6 +77,7 @@ abstract class JodaTimeVersionedRepositoryTest(override val config: Config) exte
   }
 
   it should "perform a batch insert of joda time versioned entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = testJodaTimeVersionedEntityRepository.batchInsert(
       Seq(TestJodaTimeVersionedEntity(Option(1), 2.2, None), TestJodaTimeVersionedEntity(Option(2), 3.3, None), TestJodaTimeVersionedEntity(Option(3), 4.4, None))
     )

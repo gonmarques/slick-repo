@@ -65,6 +65,7 @@ abstract class LongVersionedRepositoryTest(override val config: Config) extends 
   }
 
   it should "perform a batch insert of long versioned entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = testLongVersionedEntityRepository.batchInsert(
       Seq(TestLongVersionedEntity(Option(1), 2.2, None), TestLongVersionedEntity(Option(2), 3.3, None), TestLongVersionedEntity(Option(3), 4.4, None))
     )

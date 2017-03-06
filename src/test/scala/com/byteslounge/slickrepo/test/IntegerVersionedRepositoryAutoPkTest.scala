@@ -65,6 +65,7 @@ abstract class IntegerVersionedRepositoryAutoPkTest(override val config: Config)
   }
 
   it should "perform a batch insert of auto pk integer versioned entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = testIntegerVersionedAutoPkEntityRepository.batchInsert(
       Seq(TestIntegerVersionedAutoPkEntity(None, 2.2, None), TestIntegerVersionedAutoPkEntity(None, 3.3, None), TestIntegerVersionedAutoPkEntity(None, 4.4, None))
     )

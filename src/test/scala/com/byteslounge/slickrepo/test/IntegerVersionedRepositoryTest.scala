@@ -65,6 +65,7 @@ abstract class IntegerVersionedRepositoryTest(override val config: Config) exten
   }
 
   it should "perform a batch insert of manual pk integer versioned entities" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val batchInsertAction = testIntegerVersionedEntityRepository.batchInsert(
       Seq(TestIntegerVersionedEntity(Option(1), 2.2, None), TestIntegerVersionedEntity(Option(2), 3.3, None), TestIntegerVersionedEntity(Option(3), 4.4, None))
     )

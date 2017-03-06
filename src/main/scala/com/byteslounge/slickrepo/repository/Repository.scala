@@ -48,15 +48,15 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   /**
   * Finds all entities.
   */
-  def findAll(): DBIO[Seq[T]] = {
-    tableQueryCompiled.result
+  def findAll()(implicit ec: ExecutionContext): DBIO[Seq[T]] = {
+    tableQueryCompiled.result.map(seq => sequenceLifecycleEvent(seq, postLoad, POSTLOAD))
   }
 
   /**
   * Finds a given entity by its primary key.
   */
-  def findOne(id: ID): DBIO[Option[T]] = {
-    findOneCompiled(id).result.headOption
+  def findOne(id: ID)(implicit ec: ExecutionContext): DBIO[Option[T]] = {
+    findOneCompiled(id).result.headOption.map(e => e.map(postLoad))
   }
 
   /**
@@ -83,50 +83,38 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   */
   def save(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
     entity.id match {
-      case None    => saveUsingGeneratedId(entity)
-      case Some(_) => saveUsingPredefinedId(entity)
+      case None    => generatedIdPersister(entity, ec)
+      case Some(_) => predefinedIdPersister(entity, ec)
     }
-
-  /**
-  * Persists an entity using an auto-generated primary key.
-  */
-  private def saveUsingGeneratedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
-    generatedIdPersister(entity, ec)
 
   /**
   * Generated ID persister
   */
   protected val generatedIdPersister: (T, ExecutionContext) => DBIO[T] =
-    getGeneratedIdPersister(e => e)
+    getGeneratedIdPersister(identity)
 
   /**
   * Builds a generated ID persister
   */
   protected def getGeneratedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
-      val transformed = transformer(entity)
-      (saveCompiled += transformed).map(id => transformed.withId(id))(ec)
+      val transformed = transformer(prePersist(entity))
+      (saveCompiled += transformed).map(id => postPersist(transformed.withId(id)))(ec)
     }
-
-  /**
-  * Persists an entity using a predefined primary key.
-  */
-  protected def saveUsingPredefinedId(entity: T)(implicit ec: ExecutionContext): DBIO[T] =
-    predefinedIdPersister(entity, ec)
 
   /**
   * Predefined ID persister
   */
   protected val predefinedIdPersister: (T, ExecutionContext) => DBIO[T] =
-    getPredefinedIdPersister(e => e)
+    getPredefinedIdPersister(identity)
 
   /**
   * Builds a predefined ID persister
   */
   protected def getPredefinedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
-      val transformed = transformer(entity)
-      (tableQueryCompiled += transformed).map(_ => transformed)(ec)
+      val transformed = transformer(prePersist(entity))
+      (tableQueryCompiled += transformed).map(_ => postPersist(transformed))(ec)
     }
 
   /**
@@ -144,13 +132,13 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * Batch persister
   */
   protected val batchPersister: Seq[T] => DBIO[Option[Int]] =
-    getBatchPersister(e => e)
+    getBatchPersister(seq => sequenceLifecycleEvent(seq, prePersist, PREPERSIST))
 
   /**
   * Builds a batch persister
   */
-  protected def getBatchPersister(transformer: T => T): Seq[T] => DBIO[Option[Int]] =
-    (entities: Seq[T]) => tableQueryCompiled ++= entities.map(transformer)
+  protected def getBatchPersister(seqTransformer: Seq[T] => Seq[T]): Seq[T] => DBIO[Option[Int]] =
+    (entities: Seq[T]) => tableQueryCompiled ++= seqTransformer(entities)
 
   /**
   * Updates a given entity in the database.
@@ -179,15 +167,15 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * Updater
   */
   protected val updater: (T, F, ExecutionContext) => DBIO[T] =
-    getUpdater(e => e)
+    getUpdater(identity)
 
   /**
   * Builds an updater
   */
   protected def getUpdater(transformer: T => T): (T, F, ExecutionContext) => DBIO[T] =
     (entity: T, finder: F, ec: ExecutionContext) => {
-      val transformed = transformer(entity)
-      finder.update(transformed).map(updateValidator(entity, transformed))(ec)
+      val transformed = transformer(preUpdate(entity))
+      finder.update(transformed).map(postUpdate compose updateValidator(entity, transformed))(ec)
     }
 
   /**
@@ -196,8 +184,9 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
   * If the entity is not yet persisted in the database then
   * this operation will result in an exception being thrown.
   */
-  def delete(id: ID): DBIO[Int] = {
-    findOneCompiled(id).delete
+  def delete(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
+    val preDeleted = preDelete(entity)
+    findOneCompiled(entity.id.get).delete.map(_ => postDelete(preDeleted))
   }
 
   /**
@@ -226,9 +215,24 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) {
     }
   }
 
+  private def sequenceLifecycleEvent(seq: Seq[T], handler: T => T, event: LifecycleEvent): Seq[T] = {
+    if (LifecycleHelper.isLifecycleHandlerDefined(this.getClass, event)) {
+      seq.map(handler)
+    } else {
+      seq
+    }
+  }
+
   lazy protected val tableQueryCompiled = Compiled(tableQuery)
   lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
   lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
 
+  val postLoad: (T => T) = identity
+  val prePersist: (T => T) = identity
+  val postPersist: (T => T) = identity
+  val preUpdate: (T => T) = identity
+  val postUpdate: (T => T) = identity
+  val preDelete: (T => T) = identity
+  val postDelete: (T => T) = identity
 }
