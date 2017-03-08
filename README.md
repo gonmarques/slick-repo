@@ -5,7 +5,7 @@
 |MySQL, Oracle, DB2, PostgreSQL, Derby, H2, Hsql|Travis CI|[![Build status](https://travis-ci.org/gonmarques/slick-repo.svg?branch=master)](https://travis-ci.org/gonmarques/slick-repo)|
 |SQLServer|AppVeyor|[![Build status](https://ci.appveyor.com/api/projects/status/3httes30fa1foes1/branch/master?svg=true)](https://ci.appveyor.com/project/gonmarques/slick-repo)|
 
-[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.2.7-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
+[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.3.1-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
 
 Slick Repositories is an aggregation of common database operations in ready-to-be-used generic and type-safe repositories, best known as DAOs.
 
@@ -20,7 +20,7 @@ Slick Repositories is an aggregation of common database operations in ready-to-b
 The library releases are available at [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo) for Scala **2.10**, **2.11** and **2.12**. In order to add the library as a dependency to your project:
 
 ```scala
-libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.2.7"
+libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.3.1"
 ```
 
 ## Introduction
@@ -122,7 +122,7 @@ The repositories support the following common database operations:
 
  Updates an entity
 
- - `def delete(id: ID): DBIO[Int]`
+ - `def delete(entity: T): DBIO[T]`
 
  Deletes an entity
 
@@ -192,12 +192,14 @@ With every update, the entity version value is also checked if it's still the pr
 An entity and its respective repository may be configured for optimistic locking (versioning) like the following example:
 
 ```scala
-case class Coffee(override val id: Option[Int], brand: String, override val version: Option[Int]) extends VersionedEntity[Coffee, Int, Int]{
+case class Coffee(override val id: Option[Int], brand: String, override val version: Option[Int])
+    extends VersionedEntity[Coffee, Int, Int]{
   def withId(id: Int): Coffee = this.copy(id = Some(id))
   def withVersion(version: Int): Coffee = this.copy(version = Some(version))
 }
 
-class CoffeeRepository(override val driver: JdbcProfile) extends VersionedRepository[Coffee, Int, Int](driver) {
+class CoffeeRepository(override val driver: JdbcProfile)
+    extends VersionedRepository[Coffee, Int, Int](driver) {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
@@ -205,7 +207,8 @@ class CoffeeRepository(override val driver: JdbcProfile) extends VersionedReposi
   val tableQuery = TableQuery[Coffees]
   type TableType = Coffees
 
-  class Coffees(tag: slick.lifted.Tag) extends Table[Coffee](tag, "COFFEE") with Versioned[Int, Int] {
+  class Coffees(tag: slick.lifted.Tag) extends Table[Coffee](tag, "COFFEE")
+      with Versioned[Int, Int] {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
     def brand = column[String]("BRAND")
     def version = column[Int]("VERSION")
@@ -270,11 +273,16 @@ Now it should be just a matter of bringing the implicit `uuidVersionGenerator` t
 ```scala
 import com.byteslounge.slickrepo.version.VersionImplicits.uuidVersionGenerator
 
-case class StringVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[String]) extends VersionedEntity[StringVersionedEntity, Int, String] {
+case class StringVersionedEntity(
+  override val id: Option[Int],
+  price: Double,
+  override val version: Option[String]
+) extends VersionedEntity[StringVersionedEntity, Int, String] {
   // ...
 }
 
-class StringVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[StringVersionedEntity, Int, String](driver) {
+class StringVersionedEntityRepository(override val driver: JdbcProfile)
+    extends VersionedRepository[StringVersionedEntity, Int, String](driver) {
   // ...
 }
 ```
@@ -288,6 +296,51 @@ The repositories provide a method for entity pessimistic locking:
  - `def lock(entity: T): DBIO[T]`
 
 When such a method is called for a given entity, that entity will be pessimistically - or exclusively - locked for the duration of the current transaction (the transaction where the entity was locked). The lock will be released upon transaction commit or rollback.
+
+## Entity lifecycle listeners
+
+The repositories may define listeners that are invoked by the library when certain actions take place. For instance, a given repository may define a `prePersist` listener which will be invoked just before an entity that is managed by that repository is persisted:
+
+```scala
+class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int](driver) {
+
+  // ....
+
+  override val prePersist = (e: Coffee) => e.copy(username = currentUser())
+}
+```
+
+In this example the repository is defining a `prePersist` listener that is responsible for setting up the current logged in user in a `Coffee` entity instance that is about to be persisted.
+
+The following listeners are supported by the repositories:
+
+ - `val postLoad: (T => T)`
+
+ Executed after an entity has been loaded.
+
+ - `val prePersist: (T => T)`
+
+ Executed before an entity is persisted.
+
+ - `val postPersist: (T => T)`
+
+ Executed after an entity has been persisted.
+
+ - `val preUpdate: (T => T)`
+
+ Executed before an entity is updated.
+
+ - `val postUpdate: (T => T)`
+
+ Executed after an entity has been updated.
+
+ - `val preDelete: (T => T)`
+
+ Executed before an entity is deleted.
+
+ - `val postDelete: (T => T)`
+
+ Executed after an entity has been deleted.
 
 ## Usage examples
 
