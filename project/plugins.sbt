@@ -11,9 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.0")
+addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.1")
 
-addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.12")
+addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.19")
 
 addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.5.0")
 

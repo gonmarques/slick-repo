@@ -24,7 +24,7 @@
 
 package com.byteslounge.slickrepo.version
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 import com.byteslounge.slickrepo.datetime.DateTimeHelper
 
@@ -65,9 +65,24 @@ object VersionGenerator {
     override def nextVersion(currentVersion: Long): Long = currentVersion + 1
   }
 
-  implicit val instantVersionGenerator = new VersionGenerator[Instant]{
-    override def initialVersion(): Instant = currentInstant()
-    override def nextVersion(currentVersion: Instant): Instant = currentInstant()
+  implicit val instantVersionGenerator = new VersionGenerator[InstantVersion]{
+    override def initialVersion(): InstantVersion = InstantVersion(currentInstant())
+    override def nextVersion(currentVersion: InstantVersion): InstantVersion = InstantVersion(currentInstant())
+  }
+
+  implicit val longInstantVersionGenerator = new VersionGenerator[LongInstantVersion]{
+    override def initialVersion(): LongInstantVersion = LongInstantVersion(currentInstant())
+    override def nextVersion(currentVersion: LongInstantVersion): LongInstantVersion = LongInstantVersion(currentInstant())
+  }
+
+  implicit val localDateTimeVersionGenerator = new VersionGenerator[LocalDateTimeVersion]{
+    override def initialVersion(): LocalDateTimeVersion = LocalDateTimeVersion(currentLocalDateTime())
+    override def nextVersion(currentVersion: LocalDateTimeVersion): LocalDateTimeVersion = LocalDateTimeVersion(currentLocalDateTime())
+  }
+
+  implicit val longLocalDateTimeVersionGenerator = new VersionGenerator[LongLocalDateTimeVersion]{
+    override def initialVersion(): LongLocalDateTimeVersion = LongLocalDateTimeVersion(currentLocalDateTime())
+    override def nextVersion(currentVersion: LongLocalDateTimeVersion): LongLocalDateTimeVersion = LongLocalDateTimeVersion(currentLocalDateTime())
   }
 
   /**
@@ -77,4 +92,10 @@ object VersionGenerator {
     DateTimeHelper.currentInstant
   }
 
+  /**
+  * Returns an `LocalDateTime` that represents the current LocalDateTime.
+  */
+  private def currentLocalDateTime(): LocalDateTime = {
+    DateTimeHelper.currentLocalDateTime
+  }
 }

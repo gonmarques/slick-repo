@@ -24,12 +24,13 @@
 
 package com.byteslounge.slickrepo.datetime
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime, ZoneId}
 
 /**
  * Helper used to execute date/time related operations.
  */
 object DateTimeHelper {
+  val localDateTimeZone: ZoneId = ZoneId.of("GMT")
   var dateTimeProvider: DateTimeProvider = DateTimeProvider
   /**
   * Sets the underlying [[com.byteslounge.slickrepo.datetime.DateTimeProvider]] implementation
@@ -43,6 +44,12 @@ object DateTimeHelper {
   */
   def currentInstant: Instant = {
     dateTimeProvider.currentInstant
+  }
+  /**
+  * Gets the current [[java.time.LocalDateTime]].
+  */
+  def currentLocalDateTime: LocalDateTime = {
+    dateTimeProvider.currentLocalDateTime
   }
   /**
   * Restores the underlying [[com.byteslounge.slickrepo.datetime.DateTimeProvider]]
@@ -61,6 +68,11 @@ trait DateTimeProvider {
   * Gets the current [[java.time.Instant]].
   */
   def currentInstant: Instant
+
+  /**
+  * Gets the current [[java.time.LocalDateTime]].
+  */
+  def currentLocalDateTime: LocalDateTime
 }
 
 /**
@@ -71,4 +83,9 @@ private object DateTimeProvider extends DateTimeProvider {
   * Gets the current [[java.time.Instant]].
   */
   override def currentInstant: Instant = Instant.now()
+
+  /**
+  * Gets the current [[java.time.LocalDateTime]].
+  */
+  override def currentLocalDateTime: LocalDateTime = LocalDateTime.now()
 }

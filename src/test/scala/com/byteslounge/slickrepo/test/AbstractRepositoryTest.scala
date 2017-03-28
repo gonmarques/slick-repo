@@ -48,6 +48,9 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
   val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
   val testInstantVersionedEntityRepository = new TestInstantVersionedEntityRepository(driver)
+  val testLongInstantVersionedEntityRepository = new TestLongInstantVersionedEntityRepository(driver)
+  val testLocalDateTimeVersionedEntityRepository = new TestLocalDateTimeVersionedEntityRepository(driver)
+  val testLongLocalDateTimeVersionedEntityRepository = new TestLongLocalDateTimeVersionedEntityRepository(driver)
   val testJodaTimeVersionedEntityRepository = new TestJodaTimeVersionedEntityRepository(driver)
   val lifecycleEntityRepositoryPostLoad = new LifecycleEntityRepositoryPostLoad(driver)
   val lifecycleEntityRepositoryPrePersistAutoPk = new LifecycleEntityRepositoryPrePersistAutoPk(driver)
@@ -90,6 +93,9 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
         testLongVersionedEntityRepository.tableQuery.schema.create,
         testInstantVersionedEntityRepository.tableQuery.schema.create,
+        testLongInstantVersionedEntityRepository.tableQuery.schema.create,
+        testLocalDateTimeVersionedEntityRepository.tableQuery.schema.create,
+        testLongLocalDateTimeVersionedEntityRepository.tableQuery.schema.create,
         testJodaTimeVersionedEntityRepository.tableQuery.schema.create,
         lifecycleEntityRepositoryPostLoad.tableQuery.schema.create,
         lifecycleVersionedEntityRepositoryPostLoad.tableQuery.schema.create,
@@ -109,6 +115,9 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
         testLongVersionedEntityRepository.tableQuery.schema.drop,
         testInstantVersionedEntityRepository.tableQuery.schema.drop,
+        testLongInstantVersionedEntityRepository.tableQuery.schema.drop,
+        testLocalDateTimeVersionedEntityRepository.tableQuery.schema.drop,
+        testLongLocalDateTimeVersionedEntityRepository.tableQuery.schema.drop,
         testJodaTimeVersionedEntityRepository.tableQuery.schema.drop,
         lifecycleEntityRepositoryPostLoad.tableQuery.schema.drop,
         lifecycleVersionedEntityRepositoryPostLoad.tableQuery.schema.drop,

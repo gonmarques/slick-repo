@@ -23,7 +23,7 @@
  */
 
 package com.byteslounge.slickrepo.datetime
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
 object MockDateTimeHelper {
   def start(): Unit = {
@@ -47,6 +47,9 @@ private object MockDateTimeProvider extends DateTimeProvider {
     val result: Instant = instants.head
     instants = instants.tail
     result
+  }
+  override def currentLocalDateTime: LocalDateTime = {
+    LocalDateTime.ofInstant(currentInstant, DateTimeHelper.localDateTimeZone)
   }
   def mock(instants: Seq[Instant]): Unit = {
     instants.foreach(instant => this.instants = this.instants :+ instant)

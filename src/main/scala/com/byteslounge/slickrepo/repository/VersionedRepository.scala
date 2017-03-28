@@ -25,14 +25,14 @@
 package com.byteslounge.slickrepo.repository
 
 import java.sql.Timestamp
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 
+import com.byteslounge.slickrepo.datetime.DateTimeHelper
 import com.byteslounge.slickrepo.exception.OptimisticLockException
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
-import com.byteslounge.slickrepo.version.VersionGenerator
+import com.byteslounge.slickrepo.scalaversion.{JdbcProfile, RelationalProfile}
+import com.byteslounge.slickrepo.version._
 import slick.ast.BaseTypedType
-import com.byteslounge.slickrepo.scalaversion.JdbcProfile
-import com.byteslounge.slickrepo.scalaversion.RelationalProfile
 import slick.jdbc.JdbcType
 
 import scala.concurrent.ExecutionContext
@@ -124,7 +124,39 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
 
   lazy private val findOneVersionedCompiled = Compiled((id: Rep[ID], version: Rep[V]) => tableQuery.filter(_.id === id).filter(_.version === version))
 
-  implicit val instantToSqlTimestampMapper: JdbcType[Instant] with BaseTypedType[Instant] = MappedColumnType.base[Instant, Timestamp](
-    { instant => new java.sql.Timestamp(instant.toEpochMilli) },
-    { sqlTimestamp => Instant.ofEpochMilli(sqlTimestamp.getTime) })
+  implicit val instantVersionToSqlTimestampMapper: JdbcType[InstantVersion] with BaseTypedType[InstantVersion] = MappedColumnType.base[InstantVersion, Timestamp](
+    { instantVersion => new java.sql.Timestamp(instantVersion.instant.toEpochMilli) },
+    { sqlTimestamp => InstantVersion(Instant.ofEpochMilli(sqlTimestamp.getTime)) })
+
+  implicit val longInstantVersionToSqlTimestampMapper: JdbcType[LongInstantVersion] with BaseTypedType[LongInstantVersion] = MappedColumnType.base[LongInstantVersion, Long](
+    { longInstantVersion => longInstantVersion.instant.toEpochMilli },
+    { longTimestamp => LongInstantVersion(Instant.ofEpochMilli(longTimestamp)) })
+
+  implicit val localDateTimeVersionToSqlTimestampMapper: JdbcType[LocalDateTimeVersion] with BaseTypedType[LocalDateTimeVersion] = MappedColumnType.base[LocalDateTimeVersion, Timestamp](
+    {
+      localDateTimeVersion =>
+        new java.sql.Timestamp(
+          localDateTimeVersion.localDateTime.atZone(DateTimeHelper.localDateTimeZone).toInstant.toEpochMilli
+        )
+    },
+    {
+      sqlTimestamp =>
+        LocalDateTimeVersion(
+          LocalDateTime.ofInstant(Instant.ofEpochMilli(sqlTimestamp.getTime), DateTimeHelper.localDateTimeZone)
+        )
+    }
+  )
+
+  implicit val longLocalDateTimeVersionToSqlTimestampMapper: JdbcType[LongLocalDateTimeVersion] with BaseTypedType[LongLocalDateTimeVersion] = MappedColumnType.base[LongLocalDateTimeVersion, Long](
+    {
+      localDateTimeVersion =>
+        localDateTimeVersion.localDateTime.atZone(DateTimeHelper.localDateTimeZone).toInstant.toEpochMilli
+    },
+    {
+      longTimestamp =>
+        LongLocalDateTimeVersion(
+          LocalDateTime.ofInstant(Instant.ofEpochMilli(longTimestamp), DateTimeHelper.localDateTimeZone)
+        )
+    }
+  )
 }

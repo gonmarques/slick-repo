@@ -26,28 +26,28 @@ package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.scalaversion.JdbcProfile
-import com.byteslounge.slickrepo.version.InstantVersion
+import com.byteslounge.slickrepo.version.LongInstantVersion
 import slick.ast.BaseTypedType
 
-case class TestInstantVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[InstantVersion]) extends VersionedEntity[TestInstantVersionedEntity, Int, InstantVersion] {
-  def withId(id: Int): TestInstantVersionedEntity = this.copy(id = Some(id))
-  def withVersion(version: InstantVersion): TestInstantVersionedEntity = this.copy(version = Some(version))
+case class TestLongInstantVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[LongInstantVersion]) extends VersionedEntity[TestLongInstantVersionedEntity, Int, LongInstantVersion] {
+  def withId(id: Int): TestLongInstantVersionedEntity = this.copy(id = Some(id))
+  def withVersion(version: LongInstantVersion): TestLongInstantVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestInstantVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestInstantVersionedEntity, Int, InstantVersion](driver) {
+class TestLongInstantVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestLongInstantVersionedEntity, Int, LongInstantVersion](driver) {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
-  val versionType = implicitly[BaseTypedType[InstantVersion]]
-  val tableQuery = TableQuery[TestInstantVersionedEntities]
-  type TableType = TestInstantVersionedEntities
+  val versionType = implicitly[BaseTypedType[LongInstantVersion]]
+  val tableQuery = TableQuery[TestLongInstantVersionedEntities]
+  type TableType = TestLongInstantVersionedEntities
 
-  class TestInstantVersionedEntities(tag: slick.lifted.Tag) extends Table[TestInstantVersionedEntity](tag, "TINSV_ENTITY") with Versioned[Int, InstantVersion] {
+  class TestLongInstantVersionedEntities(tag: slick.lifted.Tag) extends Table[TestLongInstantVersionedEntity](tag, "TLONGINSV_ENTITY") with Versioned[Int, LongInstantVersion] {
     def id = column[Int]("ID", O.PrimaryKey)
     def price = column[Double]("PRICE")
-    def version = column[InstantVersion]("VERSION")
+    def version = column[LongInstantVersion]("VERSION")
 
-    def * = (id.?, price, version.?) <> ((TestInstantVersionedEntity.apply _).tupled, TestInstantVersionedEntity.unapply)
+    def * = (id.?, price, version.?) <> ((TestLongInstantVersionedEntity.apply _).tupled, TestLongInstantVersionedEntity.unapply)
   }
 
 }

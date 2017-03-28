@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 Gonçalo Marques
+ * Copyright (c) 2017 Gonçalo Marques
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,8 @@
  * SOFTWARE.
  */
 
-package com.byteslounge.slickrepo.datetime
+package com.byteslounge.slickrepo.test.h2
 
-import java.time.{Instant, LocalDateTime}
+import com.byteslounge.slickrepo.test.{H2Config, LongLocalDateTimeVersionedRepositoryTest}
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-
-class DateTimeHelperTest extends FlatSpec with Matchers with BeforeAndAfter {
-
-  before {
-    MockDateTimeHelper.restore()
-  }
-
-  "The DateTimeHelper" should "return the current instant" in {
-    val now: Instant = Instant.now()
-    val currentInstant: Instant = DateTimeHelper.currentInstant
-    currentInstant.toEpochMilli should be >= now.toEpochMilli
-  }
-
-  it should "return the current LocalDateTime" in {
-    val now: Instant = Instant.now()
-    val currentLocalDateTime: LocalDateTime = DateTimeHelper.currentLocalDateTime
-    currentLocalDateTime.atZone(DateTimeHelper.localDateTimeZone).toInstant.toEpochMilli should be >= now.toEpochMilli
-  }
-}
+class H2LongLocalDateTimeVersionedRepositoryTest extends LongLocalDateTimeVersionedRepositoryTest(H2Config.config)

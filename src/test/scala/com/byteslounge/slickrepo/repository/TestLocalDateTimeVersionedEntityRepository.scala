@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 Gonçalo Marques
+ * Copyright (c) 2017 Gonçalo Marques
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,28 +26,28 @@ package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.scalaversion.JdbcProfile
-import com.byteslounge.slickrepo.version.InstantVersion
+import com.byteslounge.slickrepo.version.LocalDateTimeVersion
 import slick.ast.BaseTypedType
 
-case class TestInstantVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[InstantVersion]) extends VersionedEntity[TestInstantVersionedEntity, Int, InstantVersion] {
-  def withId(id: Int): TestInstantVersionedEntity = this.copy(id = Some(id))
-  def withVersion(version: InstantVersion): TestInstantVersionedEntity = this.copy(version = Some(version))
+case class TestLocalDateTimeVersionedEntity(override val id: Option[Int], price: Double, override val version: Option[LocalDateTimeVersion]) extends VersionedEntity[TestLocalDateTimeVersionedEntity, Int, LocalDateTimeVersion] {
+  def withId(id: Int): TestLocalDateTimeVersionedEntity = this.copy(id = Some(id))
+  def withVersion(version: LocalDateTimeVersion): TestLocalDateTimeVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestInstantVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestInstantVersionedEntity, Int, InstantVersion](driver) {
+class TestLocalDateTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestLocalDateTimeVersionedEntity, Int, LocalDateTimeVersion](driver) {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
-  val versionType = implicitly[BaseTypedType[InstantVersion]]
-  val tableQuery = TableQuery[TestInstantVersionedEntities]
-  type TableType = TestInstantVersionedEntities
+  val versionType = implicitly[BaseTypedType[LocalDateTimeVersion]]
+  val tableQuery = TableQuery[TestLocalDateTimeVersionedEntities]
+  type TableType = TestLocalDateTimeVersionedEntities
 
-  class TestInstantVersionedEntities(tag: slick.lifted.Tag) extends Table[TestInstantVersionedEntity](tag, "TINSV_ENTITY") with Versioned[Int, InstantVersion] {
+  class TestLocalDateTimeVersionedEntities(tag: slick.lifted.Tag) extends Table[TestLocalDateTimeVersionedEntity](tag, "TLDTV_ENTITY") with Versioned[Int, LocalDateTimeVersion] {
     def id = column[Int]("ID", O.PrimaryKey)
     def price = column[Double]("PRICE")
-    def version = column[InstantVersion]("VERSION")
+    def version = column[LocalDateTimeVersion]("VERSION")
 
-    def * = (id.?, price, version.?) <> ((TestInstantVersionedEntity.apply _).tupled, TestInstantVersionedEntity.unapply)
+    def * = (id.?, price, version.?) <> ((TestLocalDateTimeVersionedEntity.apply _).tupled, TestLocalDateTimeVersionedEntity.unapply)
   }
 
 }
