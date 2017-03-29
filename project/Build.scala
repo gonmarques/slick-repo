@@ -94,8 +94,8 @@ object Build extends Build {
           <inceptionYear>2016</inceptionYear>
           <licenses>
             <license>
-              <name>The Apache Software License, Version 2.0</name>
-              <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+              <name>MIT License</name>
+              <url>https://opensource.org/licenses/MIT</url>
             </license>
           </licenses>
           <developers>
