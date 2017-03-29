@@ -25,6 +25,6 @@
 package com.byteslounge.slickrepo
 
 package object scalaversion {
-  type JdbcProfile = slick.driver.JdbcProfile
-  type RelationalProfile = slick.profile.RelationalProfile
+  type JdbcProfile = slick.jdbc.JdbcProfile
+  type RelationalProfile = slick.relational.RelationalProfile
 }

@@ -63,7 +63,7 @@ object Build extends Build {
             getSlickDependency("slick", version),
             getSlickDependency("slick-hikaricp", version) % "test"
           ) ++
-          (if (version.startsWith("2.12")) Seq.empty else Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test"))
+          (if (version.startsWith("2.10")) Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test") else Seq.empty)
         ),
 
         resolvers ++= dependencyResolvers,
@@ -166,6 +166,6 @@ object Build extends Build {
   def getSlickDependency(slickComponent: String, version: String): ModuleID = {
     "com.typesafe.slick" %
     (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
-    (if(version.startsWith("2.12")) {"3.2.0"} else {"3.1.1"})
+    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.2.0"})
   }
 }

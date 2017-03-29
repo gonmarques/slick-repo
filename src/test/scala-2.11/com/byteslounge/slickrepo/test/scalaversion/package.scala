@@ -25,14 +25,14 @@
 package com.byteslounge.slickrepo.test
 
 package object scalaversion {
-  type H2Profile = slick.driver.H2Driver
-  type OracleProfile = com.typesafe.slick.driver.oracle.OracleDriver
-  val DB2Profile = com.typesafe.slick.driver.db2.DB2Driver
-  val SQLServerProfile = com.typesafe.slick.driver.ms.SQLServerDriver
-  val OracleProfile = com.typesafe.slick.driver.oracle.OracleDriver
-  val H2Profile = slick.driver.H2Driver
-  val MySQLProfile = slick.driver.MySQLDriver
-  val PostgresProfile = slick.driver.PostgresDriver
-  val DerbyProfile = slick.driver.DerbyDriver
-  val HsqldbProfile = slick.driver.HsqldbDriver
+  type H2Profile = slick.jdbc.H2Profile
+  type OracleProfile = slick.jdbc.OracleProfile
+  val DB2Profile = slick.jdbc.DB2Profile
+  val SQLServerProfile = slick.jdbc.SQLServerProfile
+  val OracleProfile = slick.jdbc.OracleProfile
+  val H2Profile = slick.jdbc.H2Profile
+  val MySQLProfile = slick.jdbc.MySQLProfile
+  val PostgresProfile = slick.jdbc.PostgresProfile
+  val DerbyProfile = slick.jdbc.DerbyProfile
+  val HsqldbProfile = slick.jdbc.HsqldbProfile
 }
