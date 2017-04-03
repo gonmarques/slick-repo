@@ -238,7 +238,13 @@ The following version types are supported out-of-the-box:
 
  - `Long` - The version field will be an incrementing `Long` value
 
- - `java.time.Instant` - The version field will be the current UTC timestamp
+ - `com.byteslounge.slickrepo.version.InstantVersion` - The library will set the version field as a `java.sql.Timestamp` parameter in the underlying prepared statement. The timestamp will be built using the current UTC instant represented in the number of milliseconds since 1 January 1970.
+
+ - `com.byteslounge.slickrepo.version.LongInstantVersion` - The library will set the version field as a `Long` value equal to the current UTC instant represented by the number of milliseconds since 1 January 1970.
+
+ - `com.byteslounge.slickrepo.version.LocalDateTimeVersion` - The library will set the version field as a `java.sql.Timestamp` parameter in the underlying prepared statement. The timestamp will be built using the current local date and time, exactly like if it was obtained with `new java.util.Date()`. This means that the timestamp will be created using the number of milliseconds since 1 January 1970 until the local date and time as if it was in GMT. **Example**: The local date time is `2017-04-03 21:05:23.434`. The number of milliseconds that will be used to create the timestamp is `1491249923434`.
+
+ - `com.byteslounge.slickrepo.version.LongLocalDateTimeVersion` - The library will use the same strategy as if the version field was of type `com.byteslounge.slickrepo.version.LocalDateTimeVersion` but it will store the value as a `Long` number containing the milliseconds since 1 January 1970.
 
 ### Custom version types
 
