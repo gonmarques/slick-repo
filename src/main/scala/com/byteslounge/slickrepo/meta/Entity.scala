@@ -27,7 +27,9 @@ package com.byteslounge.slickrepo.meta
 /**
  * Business entity that is mapped to a database record.
  */
-abstract class Entity[T <: Entity[T, ID], ID](val id: Option[ID] = None) {
+trait Entity[T <: Entity[T, ID], ID] {
+
+  val id: Option[ID]
 
   /**
   * Sets the identifier for this entity instance.
