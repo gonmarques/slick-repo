@@ -27,7 +27,9 @@ package com.byteslounge.slickrepo.meta
 /**
  * Versioned business entity that is mapped to a database record.
  */
-abstract class VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V](val version: Option[V] = None) extends Entity[T, ID] {
+trait VersionedEntity[T <: VersionedEntity[T, ID, V], ID, V] extends Entity[T, ID] {
+
+  val version: Option[V]
 
   /**
   * Sets the version for this versioned entity instance.
