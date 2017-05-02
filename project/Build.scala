@@ -114,6 +114,10 @@ object Build extends Build {
               <name>Barnabás Oláh</name>
               <url>https://github.com/stsatlantis</url>
             </contributor>
+            <contributor>
+              <name>Marco Costa</name>
+              <url>https://github.com/mabrcosta</url>
+            </contributor>
           </contributors>
           <scm>
             <url>https://github.com/gonmarques/slick-repo.git</url>
