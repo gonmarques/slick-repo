@@ -5,7 +5,7 @@
 |MySQL, Oracle, DB2, PostgreSQL, Derby, H2, Hsql|Travis CI|[![Build status](https://travis-ci.org/gonmarques/slick-repo.svg?branch=master)](https://travis-ci.org/gonmarques/slick-repo)|
 |SQLServer|AppVeyor|[![Build status](https://ci.appveyor.com/api/projects/status/3httes30fa1foes1/branch/master?svg=true)](https://ci.appveyor.com/project/gonmarques/slick-repo)|
 
-[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.4.2-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
+[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.4.3-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
 
 Slick Repositories is an aggregation of common database operations in ready-to-be-used generic and type-safe repositories, best known as DAOs.
 
@@ -20,7 +20,7 @@ Slick Repositories is an aggregation of common database operations in ready-to-b
 The library releases are available at [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo) for Scala **2.10**, **2.11** and **2.12**. In order to add the library as a dependency to your project:
 
 ```scala
-libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.4.2"
+libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.4.3"
 ```
 
 ## Introduction
