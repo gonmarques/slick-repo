@@ -1,4 +1,4 @@
-# Slick CRUD Repositories
+# slick-repo
 
 |Database|CI |Build status|
 |--------|---|------------|
