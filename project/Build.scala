@@ -118,6 +118,10 @@ object Build extends Build {
               <name>Marco Costa</name>
               <url>https://github.com/mabrcosta</url>
             </contributor>
+            <contributor>
+              <name>David Poetzsch-Heffter</name>
+              <url>https://github.com/dpoetzsch</url>
+            </contributor>
           </contributors>
           <scm>
             <url>https://github.com/gonmarques/slick-repo.git</url>
