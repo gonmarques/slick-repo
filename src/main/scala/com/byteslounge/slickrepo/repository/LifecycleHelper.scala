@@ -39,7 +39,7 @@ class LifecycleHelper {
   /**
   * Checks if a given repository defines a lifecycle listener.
   */
-  def isLifecycleHandlerDefined(clazz: Class[_ <: Repository[_, _]], event: LifecycleEvent): Boolean = {
+  def isLifecycleHandlerDefined(clazz: Class[_ <: BaseRepository[_, _]], event: LifecycleEvent): Boolean = {
     val key = LifecycleHandlerCacheKey(clazz, event)
     val entry = lifecycleHandlerCache.get(key)
     if(entry.isDefined) {
@@ -51,15 +51,15 @@ class LifecycleHelper {
     }
   }
 
-  private def isHandlerOverridden(clazz: Class[_ <: Repository[_, _]], event: LifecycleEvent): Boolean = {
-    clazz.getMethod(event.functionName).getDeclaringClass != classOf[Repository[_, _]]
+  private def isHandlerOverridden(clazz: Class[_ <: BaseRepository[_, _]], event: LifecycleEvent): Boolean = {
+    clazz.getMethod(event.functionName).getDeclaringClass != classOf[BaseRepository[_, _]]
   }
 
 }
 
 object LifecycleHelper extends LifecycleHelper
 
-private case class LifecycleHandlerCacheKey(clazz: Class[_ <: Repository[_, _]], event: LifecycleEvent)
+private case class LifecycleHandlerCacheKey(clazz: Class[_ <: BaseRepository[_, _]], event: LifecycleEvent)
 
 sealed abstract class LifecycleEvent(val functionName : String)
 case object POSTLOAD extends LifecycleEvent("postLoad")
