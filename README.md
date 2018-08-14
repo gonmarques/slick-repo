@@ -312,7 +312,7 @@ class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coff
 
   // ....
 
-  override val prePersist = (e: Coffee) => e.copy(username = currentUser())
+  override def prePersist(e: Coffee) = e.copy(username = currentUser())
 }
 ```
 
@@ -320,31 +320,31 @@ In this example the repository is defining a `prePersist` listener that is respo
 
 The following listeners are supported by the repositories:
 
- - `val postLoad: (T => T)`
+ - `def postLoad(t: T): T`
 
  Executed after an entity has been loaded.
 
- - `val prePersist: (T => T)`
+ - `def prePersist(t: T): T`
 
  Executed before an entity is persisted.
 
- - `val postPersist: (T => T)`
+ - `def postPersist(t: T): T`
 
  Executed after an entity has been persisted.
 
- - `val preUpdate: (T => T)`
+ - `def preUpdate(t: T): T`
 
  Executed before an entity is updated.
 
- - `val postUpdate: (T => T)`
+ - `def postUpdate(t: T): T`
 
  Executed after an entity has been updated.
 
- - `val preDelete: (T => T)`
+ - `def preDelete(t: T): T`
 
  Executed before an entity is deleted.
 
- - `val postDelete: (T => T)`
+ - `def postDelete(t: T): T`
 
  Executed after an entity has been deleted.
 

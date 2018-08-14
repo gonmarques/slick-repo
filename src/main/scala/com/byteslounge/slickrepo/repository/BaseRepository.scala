@@ -177,7 +177,7 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
   protected def getUpdater(transformer: T => T): (T, F, ExecutionContext) => DBIO[T] =
     (entity: T, finder: F, ec: ExecutionContext) => {
       val transformed = transformer(preUpdate(entity))
-      finder.update(transformed).map(postUpdate compose updateValidator(entity, transformed))(ec)
+      finder.update(transformed).map((postUpdate _) compose updateValidator(entity, transformed))(ec)
     }
 
   /**
@@ -230,11 +230,12 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
   lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
 
-  val postLoad: (T => T) = identity
-  val prePersist: (T => T) = identity
-  val postPersist: (T => T) = identity
-  val preUpdate: (T => T) = identity
-  val postUpdate: (T => T) = identity
-  val preDelete: (T => T) = identity
-  val postDelete: (T => T) = identity
+  val postLoadOld: (T => T) = identity
+  def postLoad(t: T): T = t
+  def prePersist(t: T): T = t
+  def postPersist(t: T): T = t
+  def preUpdate(t: T): T = t
+  def postUpdate(t: T): T = t
+  def preDelete(t: T): T = t
+  def postDelete(t: T): T = t
 }

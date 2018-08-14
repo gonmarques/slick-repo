@@ -221,21 +221,21 @@ class LifecycleEntityRepositoryManualPk(override val driver: JdbcProfile) extend
     def * = (id.?, name, field1, field2, field3, field4) <> ((LifecycleEntityManualPk.apply _).tupled, LifecycleEntityManualPk.unapply)
   }
 
-  override val prePersist = (e: LifecycleEntityManualPk) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleEntityManualPk) => e.copy(field1 = "postPersist")
-  override val preUpdate = (e: LifecycleEntityManualPk) => e.copy(field1 = "preUpdate")
-  override val postUpdate = (e: LifecycleEntityManualPk) => e.copy(field2 = "postUpdate")
-  override val preDelete = (e: LifecycleEntityManualPk) => e.copy(field3 = "preDelete")
-  override val postDelete = (e: LifecycleEntityManualPk) => e.copy(field4 = "postDelete")
+  override def prePersist(e: LifecycleEntityManualPk) = e.copy(name = "prePersist")
+  override def postPersist(e: LifecycleEntityManualPk) = e.copy(field1 = "postPersist")
+  override def preUpdate(e: LifecycleEntityManualPk) = e.copy(field1 = "preUpdate")
+  override def postUpdate(e: LifecycleEntityManualPk) = e.copy(field2 = "postUpdate")
+  override def preDelete(e: LifecycleEntityManualPk) = e.copy(field3 = "preDelete")
+  override def postDelete(e: LifecycleEntityManualPk) = e.copy(field4 = "postDelete")
 }
 
 class LifecycleEntityRepositoryPostLoad(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
-  override val postLoad = (e: LifecycleEntity) => e.copy(name = "postLoad")
+  override def postLoad(e: LifecycleEntity) = e.copy(name = "postLoad")
 }
 
 class LifecycleEntityRepositoryPrePersistAutoPk(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
-  override val prePersist = (e: LifecycleEntity) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleEntity) => e.copy(field1 = "postPersist")
+  override def prePersist(e: LifecycleEntity) = e.copy(name = "prePersist")
+  override def postPersist(e: LifecycleEntity) = e.copy(field1 = "postPersist")
 }
 
 case class LifecycleVersionedEntity(override val id: Option[Int] = None, name: String, field1: String, override val version: Option[Int]) extends VersionedEntity[LifecycleVersionedEntity, Int, Int]{
@@ -283,15 +283,15 @@ class LifecycleVersionedEntityRepositoryManualPk(override val driver: JdbcProfil
     def * = (id.?, name, field1, version.?) <> ((LifecycleVersionedEntityManualPk.apply _).tupled, LifecycleVersionedEntityManualPk.unapply)
   }
 
-  override val prePersist = (e: LifecycleVersionedEntityManualPk) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleVersionedEntityManualPk) => e.copy(field1 = "postPersist")
+  override def prePersist(e: LifecycleVersionedEntityManualPk) = e.copy(name = "prePersist")
+  override def postPersist(e: LifecycleVersionedEntityManualPk) = e.copy(field1 = "postPersist")
 }
 
 class LifecycleVersionedEntityRepositoryPostLoad(override val driver: JdbcProfile) extends LifecycleVersionedEntityRepository(driver) {
-  override val postLoad = (e: LifecycleVersionedEntity) => e.copy(name = "postLoad")
+  override def postLoad(e: LifecycleVersionedEntity) = e.copy(name = "postLoad")
 }
 
 class LifecycleVersionedEntityRepositoryPrePersistAutoPk(override val driver: JdbcProfile) extends LifecycleVersionedEntityRepository(driver) {
- override val prePersist = (e: LifecycleVersionedEntity) => e.copy(name = "prePersist")
- override val postPersist = (e: LifecycleVersionedEntity) => e.copy(field1 = "postPersist")
+ override def prePersist(e: LifecycleVersionedEntity) = e.copy(name = "prePersist")
+ override def postPersist(e: LifecycleVersionedEntity) = e.copy(field1 = "postPersist")
 }
