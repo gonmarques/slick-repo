@@ -26,6 +26,8 @@ package com.byteslounge.slickrepo.repository
 
 import java.util.concurrent.ConcurrentHashMap
 
+import com.byteslounge.slickrepo.meta.Entity
+
 import scala.collection.concurrent.Map
 import scala.collection.convert.decorateAsScala._
 
@@ -52,7 +54,7 @@ class LifecycleHelper {
   }
 
   private def isHandlerOverridden(clazz: Class[_ <: BaseRepository[_, _]], event: LifecycleEvent): Boolean = {
-    clazz.getMethod(event.functionName).getDeclaringClass != classOf[BaseRepository[_, _]]
+    clazz.getMethod(event.functionName, classOf[Entity[_, _]]).getDeclaringClass != classOf[BaseRepository[_, _]]
   }
 
 }
