@@ -54,10 +54,16 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val testJodaTimeVersionedEntityRepository = new TestJodaTimeVersionedEntityRepository(driver)
   val lifecycleEntityRepositoryPostLoad = new LifecycleEntityRepositoryPostLoad(driver)
   val lifecycleEntityRepositoryPrePersistAutoPk = new LifecycleEntityRepositoryPrePersistAutoPk(driver)
+  val lifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers = new LifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers(driver)
+  val lifecycleEntityRepositoryPrivateHandler = new LifecycleEntityRepositoryPrivateHandler(driver)
+  val lifecycleEntityRepositoryPrivateHandlerSubClass = new LifecycleEntityRepositoryPrivateHandlerSubClass(driver)
+  val lifecycleEntityRepositoryPrivateHandlerSubClassSameHandlerNameOtherHandlerType = new LifecycleEntityRepositoryPrivateHandlerSubClassSameHandlerNameOtherHandlerType(driver)
   val lifecycleEntityRepositoryManualPk = new LifecycleEntityRepositoryManualPk(driver)
   val lifecycleVersionedEntityRepositoryPostLoad = new LifecycleVersionedEntityRepositoryPostLoad(driver)
   val lifecycleVersionedEntityRepositoryPrePersistAutoPk = new LifecycleVersionedEntityRepositoryPrePersistAutoPk(driver)
   val lifecycleVersionedEntityRepositoryManualPk = new LifecycleVersionedEntityRepositoryManualPk(driver)
+  val lifecycleEntityRepositoryHandlerWrongHandlerParameterType = new LifecycleEntityRepositoryHandlerWrongHandlerParameterType(driver)
+  val lifecycleEntityRepositoryHandlerWrongHandlerParameterNumber = new LifecycleEntityRepositoryHandlerWrongHandlerParameterNumber(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)

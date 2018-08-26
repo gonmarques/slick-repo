@@ -66,7 +66,7 @@ abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : Versi
   * Batch persister
   */
   override protected val batchPersister: Seq[T] => DBIO[Option[Int]] =
-    getBatchPersister(entities => entities.map(prePersist compose versionApplier))
+    getBatchPersister(entities => entities.map(_getPrePersist compose versionApplier))
 
   /**
   * Updater

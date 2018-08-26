@@ -52,10 +52,10 @@ object Build extends Build {
 
         name := "slick-repo",
         description := "CRUD Repositories for Slick based persistence Scala projects",
-        version := "1.4.5-SNAPSHOT",
+        version := "1.5.1-SNAPSHOT",
 
-        scalaVersion := "2.11.8",
-        crossScalaVersions := Seq("2.11.8", "2.12.1", "2.10.6"),
+        scalaVersion := "2.12.6",
+        crossScalaVersions := Seq("2.12.6", "2.11.12", "2.10.7"),
 
         libraryDependencies ++= dependencies,
         libraryDependencies <++= scalaVersion (
@@ -63,7 +63,8 @@ object Build extends Build {
             getSlickDependency("slick", version),
             getSlickDependency("slick-hikaricp", version) % "test"
           ) ++
-          (if (version.startsWith("2.10")) Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test") else Seq.empty)
+          (if (version.startsWith("2.10")) Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test") else Seq.empty) ++
+          Seq("org.scala-lang" % "scala-reflect" % version)
         ),
 
         resolvers ++= dependencyResolvers,
