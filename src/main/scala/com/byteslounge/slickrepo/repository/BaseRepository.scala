@@ -24,11 +24,13 @@
 
 package com.byteslounge.slickrepo.repository
 
+import com.byteslounge.slickrepo.annotation._
 import com.byteslounge.slickrepo.meta.{Entity, Keyed}
 import com.byteslounge.slickrepo.scalaversion.{JdbcProfile, RelationalProfile}
 import slick.ast.BaseTypedType
 import slick.lifted.AppliedCompiledFunction
 
+import scala.annotation.StaticAnnotation
 import scala.concurrent.ExecutionContext
 
 /**
@@ -51,14 +53,14 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     * Finds all entities.
     */
   def findAll()(implicit ec: ExecutionContext): DBIO[Seq[T]] = {
-    tableQueryCompiled.result.map(seq => sequenceLifecycleEvent(seq, postLoad, POSTLOAD))
+    tableQueryCompiled.result.map(seq => sequenceLifecycleEvent(seq, _postLoad, classOf[postLoad]))
   }
 
   /**
     * Finds a given entity by its primary key.
     */
   def findOne(id: ID)(implicit ec: ExecutionContext): DBIO[Option[T]] = {
-    findOneCompiled(id).result.headOption.map(e => e.map(postLoad))
+    findOneCompiled(id).result.headOption.map(e => e.map(_postLoad))
   }
 
   /**
@@ -100,8 +102,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     */
   protected def getGeneratedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
-      val transformed = transformer(prePersist(entity))
-      (saveCompiled += transformed).map(id => postPersist(transformed.withId(id)))(ec)
+      val transformed = transformer(_prePersist(entity))
+      (saveCompiled += transformed).map(id => _postPersist(transformed.withId(id)))(ec)
     }
 
   /**
@@ -115,8 +117,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     */
   protected def getPredefinedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
-      val transformed = transformer(prePersist(entity))
-      (tableQueryCompiled += transformed).map(_ => postPersist(transformed))(ec)
+      val transformed = transformer(_prePersist(entity))
+      (tableQueryCompiled += transformed).map(_ => _postPersist(transformed))(ec)
     }
 
   /**
@@ -134,7 +136,7 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     * Batch persister
     */
   protected val batchPersister: Seq[T] => DBIO[Option[Int]] =
-    getBatchPersister(seq => sequenceLifecycleEvent(seq, prePersist, PREPERSIST))
+    getBatchPersister(seq => sequenceLifecycleEvent(seq, _prePersist, classOf[prePersist]))
 
   /**
     * Builds a batch persister
@@ -176,8 +178,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     */
   protected def getUpdater(transformer: T => T): (T, F, ExecutionContext) => DBIO[T] =
     (entity: T, finder: F, ec: ExecutionContext) => {
-      val transformed = transformer(preUpdate(entity))
-      finder.update(transformed).map(postUpdate compose updateValidator(entity, transformed))(ec)
+      val transformed = transformer(_preUpdate(entity))
+      finder.update(transformed).map(_postUpdate compose updateValidator(entity, transformed))(ec)
     }
 
   /**
@@ -187,8 +189,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     * this operation will result in an exception being thrown.
     */
   def delete(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val preDeleted = preDelete(entity)
-    findOneCompiled(entity.id.get).delete.map(_ => postDelete(preDeleted))
+    val preDeleted = _preDelete(entity)
+    findOneCompiled(entity.id.get).delete.map(_ => _postDelete(preDeleted))
   }
 
   /**
@@ -217,8 +219,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     }
   }
 
-  private def sequenceLifecycleEvent(seq: Seq[T], handler: T => T, event: LifecycleEvent): Seq[T] = {
-    if (LifecycleHelper.isLifecycleHandlerDefined(this.getClass, event)) {
+  private def sequenceLifecycleEvent(seq: Seq[T], handler: T => T, handlerType: Class[_ <: StaticAnnotation]): Seq[T] = {
+    if (LifecycleHelper.isLifecycleHandlerDefined(this.getClass, handlerType)) {
       seq.map(handler)
     } else {
       seq
@@ -230,11 +232,17 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
   lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
   lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
 
-  val postLoad: (T => T) = identity
-  val prePersist: (T => T) = identity
-  val postPersist: (T => T) = identity
-  val preUpdate: (T => T) = identity
-  val postUpdate: (T => T) = identity
-  val preDelete: (T => T) = identity
-  val postDelete: (T => T) = identity
+  private val _postLoad: (T => T) = createHandler(classOf[postLoad])
+  private val _prePersist: (T => T) = createHandler(classOf[prePersist])
+  private val _postPersist: (T => T) = createHandler(classOf[postPersist])
+  private val _preUpdate: (T => T) = createHandler(classOf[preUpdate])
+  private val _postUpdate: (T => T) = createHandler(classOf[postUpdate])
+  private val _preDelete: (T => T) = createHandler(classOf[preDelete])
+  private val _postDelete: (T => T) = createHandler(classOf[postDelete])
+
+  protected def _getPrePersist: (T => T) = _prePersist
+
+  private def createHandler(handlerType: Class[_ <: StaticAnnotation]) = {
+    LifecycleHelper.createLifecycleHandler[T, ID](this, handlerType)
+  }
 }

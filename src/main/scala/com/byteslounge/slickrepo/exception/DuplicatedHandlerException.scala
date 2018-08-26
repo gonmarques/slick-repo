@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 Gonçalo Marques
+ * Copyright (c) 2018 Gonçalo Marques
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,10 @@
  * SOFTWARE.
  */
 
-package com.byteslounge.slickrepo.repository
-
-import com.byteslounge.slickrepo.meta.Entity
-import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+package com.byteslounge.slickrepo.exception
 
 /**
- * Repository used to execute CRUD operations against a database for
- * a given entity type.
+ * Exception thrown during entity lifecycle listener configuration when a
+ * listener for a given event type is detected more than once in the same class.
  */
-abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) extends BaseRepository[T, ID]
+class DuplicatedHandlerException(message: String) extends RuntimeException(message)

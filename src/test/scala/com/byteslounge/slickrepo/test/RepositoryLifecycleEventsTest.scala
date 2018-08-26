@@ -24,6 +24,8 @@
 
 package com.byteslounge.slickrepo.test
 
+import com.byteslounge.slickrepo.annotation._
+import com.byteslounge.slickrepo.exception.{DuplicatedHandlerException, ListenerInvocationException}
 import com.byteslounge.slickrepo.meta.{Entity, Keyed, Versioned, VersionedEntity}
 import com.byteslounge.slickrepo.repository._
 import com.byteslounge.slickrepo.scalaversion.JdbcProfile
@@ -33,7 +35,7 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
 
   "The Repository Lifecycle events" should "trigger a postLoad event - non versioned entity - findOne" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val entity: LifecycleEntity = executeAction(lifecycleEntityRepositoryPostLoad.save(LifecycleEntity(None, "john", "f1")))
+    val entity: LifecycleEntity = executeAction(lifecycleEntityRepositoryPostLoad.save(LifecycleEntity(None, "john", "f1", "f2")))
     val read: LifecycleEntity = executeAction(lifecycleEntityRepositoryPostLoad.findOne(entity.id.get)).get
     read.name should equal("postLoad")
   }
@@ -47,7 +49,7 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
 
   it should "trigger a postLoad event - non versioned entity - findAll" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    executeAction(lifecycleEntityRepositoryPostLoad.save(LifecycleEntity(None, "john", "f1")))
+    executeAction(lifecycleEntityRepositoryPostLoad.save(LifecycleEntity(None, "john", "f1", "f2")))
     val read: Seq[LifecycleEntity] = executeAction(lifecycleEntityRepositoryPostLoad.findAll())
     read.head.name should equal("postLoad")
   }
@@ -61,7 +63,7 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
 
   it should "trigger a prePersist event - non versioned entity + auto PK - save" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.save(LifecycleEntity(None, "john", "f1")))
+    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.save(LifecycleEntity(None, "john", "f1", "f2")))
     val read = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.findOne(entity.id.get)).get
     read.name should equal("prePersist")
   }
@@ -75,7 +77,7 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
 
   it should "trigger a prePersist event - non versioned entity + auto PK - batchInsert" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    executeAction(lifecycleEntityRepositoryPrePersistAutoPk.batchInsert(Seq(LifecycleEntity(None, "john", "f1"), LifecycleEntity(None, "john", "f1"))))
+    executeAction(lifecycleEntityRepositoryPrePersistAutoPk.batchInsert(Seq(LifecycleEntity(None, "john", "f1", "f2"), LifecycleEntity(None, "john", "f1", "f2"))))
     executeAction(lifecycleEntityRepositoryPrePersistAutoPk.findOne(1)).get.name should equal("prePersist")
     executeAction(lifecycleEntityRepositoryPrePersistAutoPk.findOne(2)).get.name should equal("prePersist")
   }
@@ -116,7 +118,7 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
 
   it should "trigger a postPersist event - non versioned entity + auto PK - save" in {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.save(LifecycleEntity(None, "john", "f1")))
+    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.save(LifecycleEntity(None, "john", "f1", "f2")))
     val read = executeAction(lifecycleEntityRepositoryPrePersistAutoPk.findOne(entity.id.get)).get
     read.field1 should equal("f1")
     entity.field1 should equal("postPersist")
@@ -177,75 +179,239 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
     deleted.field4 should equal("postDelete")
   }
 
+  it should "executes multiple event handlers for the same event type" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers.save(LifecycleEntity(None, "john", "f1", "f2")))
+    val read = executeAction(lifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers.findOne(entity.id.get)).get
+    read.name should equal("prePersist")
+    read.field2 should equal("prePersist")
+  }
+
+  it should "event handler as private method" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryPrivateHandler.save(LifecycleEntity(None, "john", "f1", "f2")))
+    val read = executeAction(lifecycleEntityRepositoryPrivateHandler.findOne(entity.id.get)).get
+    read.name should equal("prePersist")
+  }
+
+  it should "event handlers with same name as private methods are both called" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryPrivateHandlerSubClass.save(LifecycleEntity(None, "john", "f1", "f2")))
+    val read = executeAction(lifecycleEntityRepositoryPrivateHandlerSubClass.findOne(entity.id.get)).get
+
+    // scala 2.10 does not support this
+    if (!scala.util.Properties.versionString.startsWith("version 2.10")) {
+      read.name should equal("prePersist")
+      read.field1 should equal("prePersist")
+    }
+  }
+
+  it should "event handlers with same name for different event types are both called" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryPrivateHandlerSubClassSameHandlerNameOtherHandlerType.save(LifecycleEntity(None, "john", "f1", "f2")))
+    val read = executeAction(lifecycleEntityRepositoryPrivateHandlerSubClassSameHandlerNameOtherHandlerType.findOne(entity.id.get)).get
+
+    // scala 2.10 does not support this
+    if (!scala.util.Properties.versionString.startsWith("version 2.10")) {
+      entity.name should equal("prePersist")
+      read.field1 should equal("postLoad")
+    }
+  }
+
+  it should "overrides an event handler" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers.save(LifecycleEntity(None, "john", "f1", "f2")))
+    entity.field1 should equal("postPersistOverride")
+  }
+
+  it should "successfully instantiate a repository with multiple handlers for different event types" in {
+    new LifecycleEntityRepositoryMultipleHandlersDifferentType(driver)
+  }
+
+  it should "successfully instantiates a repository with multiple handlers for the same event type in different classes in the hierarchy" in {
+    new LifecycleEntityRepositoryMultipleHandlersSameTypeSubClass(driver)
+  }
+
+  it should "fail to instantiate a repository with multiple handlers for the same event type in the same class" in {
+    val exception =
+      intercept[DuplicatedHandlerException] {
+        new LifecycleEntityRepositoryMultipleHandlersSameType(driver)
+      }
+    exception.getMessage should equal("Only a single event handler for a given event type is allowed in the same repository class. Repository class: LifecycleEntityRepositoryMultipleHandlersSameType, eventType: postLoad")
+  }
+
+  it should "fail for a handler with an incorrect parameter type" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val exception =
+      intercept[ListenerInvocationException] {
+        executeAction(lifecycleEntityRepositoryHandlerWrongHandlerParameterType.save(LifecycleEntity(None, "john", "f1", "f2")))
+      }
+    exception.getMessage should equal("Error while invoking listener for event type prePersist in class com.byteslounge.slickrepo.test.LifecycleEntityRepositoryHandlerWrongHandlerParameterType. Confirm that the handler method accepts a single parameter which type is compatible with the repository entity type")
+    exception.getCause.getClass should equal (classOf[IllegalArgumentException])
+  }
+
+  it should "fail for a handler with an incorrect number of parameters" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val exception =
+      intercept[ListenerInvocationException] {
+        executeAction(lifecycleEntityRepositoryHandlerWrongHandlerParameterNumber.save(LifecycleEntity(None, "john", "f1", "f2")))
+      }
+    exception.getMessage should equal("Error while invoking listener for event type prePersist in class com.byteslounge.slickrepo.test.LifecycleEntityRepositoryHandlerWrongHandlerParameterNumber. Confirm that the handler method accepts a single parameter which type is compatible with the repository entity type")
+    if (scala.util.Properties.versionString.startsWith("version 2.10")) {
+      exception.getCause.getClass should equal (classOf[IllegalArgumentException])
+    } else {
+      exception.getCause.getClass should equal (classOf[ArrayIndexOutOfBoundsException])
+    }
+  }
 }
 
-case class LifecycleEntity(override val id: Option[Int] = None, name: String, field1: String) extends Entity[LifecycleEntity, Int]{
+case class LifecycleEntity(override val id: Option[Int] = None, name: String, field1: String, field2: String) extends Entity[LifecycleEntity, Int] {
   def withId(id: Int): LifecycleEntity = this.copy(id = Some(id))
 }
 
 abstract class LifecycleEntityRepository(override val driver: JdbcProfile) extends Repository[LifecycleEntity, Int](driver) {
 
   import driver.api._
+
   val pkType = implicitly[BaseTypedType[Int]]
   val tableQuery = TableQuery[LifecycleEntities]
   type TableType = LifecycleEntities
 
   class LifecycleEntities(tag: slick.lifted.Tag) extends Table[LifecycleEntity](tag, "LIFECYC_ENT") with Keyed[Int] {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+
     def name = column[String]("NAME")
+
     def field1 = column[String]("FIELD1")
 
-    def * = (id.?, name, field1) <> ((LifecycleEntity.apply _).tupled, LifecycleEntity.unapply)
+    def field2 = column[String]("FIELD2")
+
+    def * = (id.?, name, field1, field2) <> ((LifecycleEntity.apply _).tupled, LifecycleEntity.unapply)
   }
+
 }
 
-case class LifecycleEntityManualPk(override val id: Option[Int], name: String, field1: String, field2: String, field3: String, field4: String) extends Entity[LifecycleEntityManualPk, Int]{
+case class LifecycleEntityManualPk(override val id: Option[Int], name: String, field1: String, field2: String, field3: String, field4: String) extends Entity[LifecycleEntityManualPk, Int] {
   def withId(id: Int): LifecycleEntityManualPk = this.copy(id = Some(id))
 }
 
 class LifecycleEntityRepositoryManualPk(override val driver: JdbcProfile) extends Repository[LifecycleEntityManualPk, Int](driver) {
 
   import driver.api._
+
   val pkType = implicitly[BaseTypedType[Int]]
   val tableQuery = TableQuery[LifecycleEntitiesManualPk]
   type TableType = LifecycleEntitiesManualPk
 
   class LifecycleEntitiesManualPk(tag: slick.lifted.Tag) extends Table[LifecycleEntityManualPk](tag, "LIFECYC_ENT_MPK") with Keyed[Int] {
     def id = column[Int]("ID", O.PrimaryKey)
+
     def name = column[String]("NAME")
+
     def field1 = column[String]("FIELD1")
+
     def field2 = column[String]("FIELD2")
+
     def field3 = column[String]("FIELD3")
+
     def field4 = column[String]("FIELD4")
 
     def * = (id.?, name, field1, field2, field3, field4) <> ((LifecycleEntityManualPk.apply _).tupled, LifecycleEntityManualPk.unapply)
   }
 
-  override val prePersist = (e: LifecycleEntityManualPk) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleEntityManualPk) => e.copy(field1 = "postPersist")
-  override val preUpdate = (e: LifecycleEntityManualPk) => e.copy(field1 = "preUpdate")
-  override val postUpdate = (e: LifecycleEntityManualPk) => e.copy(field2 = "postUpdate")
-  override val preDelete = (e: LifecycleEntityManualPk) => e.copy(field3 = "preDelete")
-  override val postDelete = (e: LifecycleEntityManualPk) => e.copy(field4 = "postDelete")
+  @prePersist
+  def prePersist(e: LifecycleEntityManualPk) = {
+    e.copy(name = "prePersist")
+  }
+
+  @postPersist
+  def postPersist(e: LifecycleEntityManualPk) = {
+    e.copy(field1 = "postPersist")
+  }
+
+  @preUpdate
+  def preUpdate(e: LifecycleEntityManualPk) = {
+    e.copy(field1 = "preUpdate")
+  }
+
+  @postUpdate
+  def postUpdate(e: LifecycleEntityManualPk) = {
+    e.copy(field2 = "postUpdate")
+  }
+
+  @preDelete
+  def preDelete(e: LifecycleEntityManualPk) = {
+    e.copy(field3 = "preDelete")
+  }
+
+  @postDelete
+  def postDelete(e: LifecycleEntityManualPk) = {
+    e.copy(field4 = "postDelete")
+  }
 }
 
 class LifecycleEntityRepositoryPostLoad(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
-  override val postLoad = (e: LifecycleEntity) => e.copy(name = "postLoad")
+  @postLoad
+  def postLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
 }
 
 class LifecycleEntityRepositoryPrePersistAutoPk(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
-  override val prePersist = (e: LifecycleEntity) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleEntity) => e.copy(field1 = "postPersist")
+  @prePersist
+  def prePersist(e: LifecycleEntity) = {
+    e.copy(name = "prePersist")
+  }
+
+  @postPersist
+  def postPersist(e: LifecycleEntity) = {
+    e.copy(field1 = "postPersist")
+  }
 }
 
-case class LifecycleVersionedEntity(override val id: Option[Int] = None, name: String, field1: String, override val version: Option[Int]) extends VersionedEntity[LifecycleVersionedEntity, Int, Int]{
+class LifecycleEntityRepositoryPrePersistAutoPkMultipleHandlers(override val driver: JdbcProfile) extends LifecycleEntityRepositoryPrePersistAutoPk(driver) {
+  @prePersist
+  def otherPrePersist(e: LifecycleEntity) = {
+    e.copy(field2 = "prePersist")
+  }
+
+  @postPersist
+  override def postPersist(e: LifecycleEntity) = {
+    e.copy(field1 = "postPersistOverride")
+  }
+}
+
+class LifecycleEntityRepositoryPrivateHandler(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @prePersist
+  private def prePersist(e: LifecycleEntity) = {
+    e.copy(name = "prePersist")
+  }
+}
+
+class LifecycleEntityRepositoryPrivateHandlerSubClass(override val driver: JdbcProfile) extends LifecycleEntityRepositoryPrivateHandler(driver) {
+  @prePersist
+  private def prePersist(e: LifecycleEntity) = {
+    e.copy(field1 = "prePersist")
+  }
+}
+
+class LifecycleEntityRepositoryPrivateHandlerSubClassSameHandlerNameOtherHandlerType(override val driver: JdbcProfile) extends LifecycleEntityRepositoryPrivateHandler(driver) {
+  @postLoad
+  private def prePersist(e: LifecycleEntity) = {
+    e.copy(field1 = "postLoad")
+  }
+}
+
+case class LifecycleVersionedEntity(override val id: Option[Int] = None, name: String, field1: String, override val version: Option[Int]) extends VersionedEntity[LifecycleVersionedEntity, Int, Int] {
   def withId(id: Int): LifecycleVersionedEntity = this.copy(id = Some(id))
+
   def withVersion(version: Int): LifecycleVersionedEntity = this.copy(version = Some(version))
 }
 
 abstract class LifecycleVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntity, Int, Int](driver) {
 
   import driver.api._
+
   val pkType = implicitly[BaseTypedType[Int]]
   val versionType = implicitly[BaseTypedType[Int]]
   val tableQuery = TableQuery[LifecycleVersionedEntities]
@@ -253,22 +419,28 @@ abstract class LifecycleVersionedEntityRepository(override val driver: JdbcProfi
 
   class LifecycleVersionedEntities(tag: slick.lifted.Tag) extends Table[LifecycleVersionedEntity](tag, "LIFECYC_V_ENT") with Versioned[Int, Int] {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+
     def name = column[String]("NAME")
+
     def field1 = column[String]("FIELD1")
+
     def version = column[Int]("VERSION")
 
     def * = (id.?, name, field1, version.?) <> ((LifecycleVersionedEntity.apply _).tupled, LifecycleVersionedEntity.unapply)
   }
+
 }
 
-case class LifecycleVersionedEntityManualPk(override val id: Option[Int] = None, name: String, field1: String, override val version: Option[Int]) extends VersionedEntity[LifecycleVersionedEntityManualPk, Int, Int]{
+case class LifecycleVersionedEntityManualPk(override val id: Option[Int] = None, name: String, field1: String, override val version: Option[Int]) extends VersionedEntity[LifecycleVersionedEntityManualPk, Int, Int] {
   def withId(id: Int): LifecycleVersionedEntityManualPk = this.copy(id = Some(id))
+
   def withVersion(version: Int): LifecycleVersionedEntityManualPk = this.copy(version = Some(version))
 }
 
 class LifecycleVersionedEntityRepositoryManualPk(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntityManualPk, Int, Int](driver) {
 
   import driver.api._
+
   val pkType = implicitly[BaseTypedType[Int]]
   val versionType = implicitly[BaseTypedType[Int]]
   val tableQuery = TableQuery[LifecycleVersionedEntitiesManualPk]
@@ -276,22 +448,94 @@ class LifecycleVersionedEntityRepositoryManualPk(override val driver: JdbcProfil
 
   class LifecycleVersionedEntitiesManualPk(tag: slick.lifted.Tag) extends Table[LifecycleVersionedEntityManualPk](tag, "LIFECYC_V_ENT_MPK") with Versioned[Int, Int] {
     def id = column[Int]("ID", O.PrimaryKey)
+
     def name = column[String]("NAME")
+
     def field1 = column[String]("FIELD1")
+
     def version = column[Int]("VERSION")
 
     def * = (id.?, name, field1, version.?) <> ((LifecycleVersionedEntityManualPk.apply _).tupled, LifecycleVersionedEntityManualPk.unapply)
   }
 
-  override val prePersist = (e: LifecycleVersionedEntityManualPk) => e.copy(name = "prePersist")
-  override val postPersist = (e: LifecycleVersionedEntityManualPk) => e.copy(field1 = "postPersist")
+  @prePersist
+  def prePersist(e: LifecycleVersionedEntityManualPk) = {
+    e.copy(name = "prePersist")
+  }
+
+  @postPersist
+  def postPersist(e: LifecycleVersionedEntityManualPk) = {
+    e.copy(field1 = "postPersist")
+  }
 }
 
 class LifecycleVersionedEntityRepositoryPostLoad(override val driver: JdbcProfile) extends LifecycleVersionedEntityRepository(driver) {
-  override val postLoad = (e: LifecycleVersionedEntity) => e.copy(name = "postLoad")
+  @postLoad
+  def postLoad(e: LifecycleVersionedEntity) = {
+    e.copy(name = "postLoad")
+  }
 }
 
 class LifecycleVersionedEntityRepositoryPrePersistAutoPk(override val driver: JdbcProfile) extends LifecycleVersionedEntityRepository(driver) {
- override val prePersist = (e: LifecycleVersionedEntity) => e.copy(name = "prePersist")
- override val postPersist = (e: LifecycleVersionedEntity) => e.copy(field1 = "postPersist")
+  @prePersist
+  def prePersist(e: LifecycleVersionedEntity) = {
+    e.copy(name = "prePersist")
+  }
+
+  @postPersist
+  def postPersist(e: LifecycleVersionedEntity) = {
+    e.copy(field1 = "postPersist")
+  }
+}
+
+class LifecycleEntityRepositoryMultipleHandlersDifferentType(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @postLoad
+  def postLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
+
+  @prePersist
+  def prePersist(e: LifecycleEntity) = {
+    e.copy(name = "prePersist")
+  }
+}
+
+class LifecycleEntityRepositoryMultipleHandlersSameType(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @postLoad
+  def postLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
+
+  @postLoad
+  def otherPostLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
+}
+
+class LifecycleEntityRepositoryMultipleHandlersSameTypeSuperClass(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @postLoad
+  def postLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
+}
+
+class LifecycleEntityRepositoryMultipleHandlersSameTypeSubClass(override val driver: JdbcProfile) extends LifecycleEntityRepositoryMultipleHandlersSameTypeSuperClass(driver) {
+  @postLoad
+  def otherPostLoad(e: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
+}
+
+class LifecycleEntityRepositoryHandlerWrongHandlerParameterType(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @prePersist
+  def prePersist(e: String) = {
+    LifecycleEntity(None, "john", "f1", "f2")
+  }
+}
+
+class LifecycleEntityRepositoryHandlerWrongHandlerParameterNumber(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) {
+  @prePersist
+  def prePersist(e: LifecycleEntity, e2: LifecycleEntity) = {
+    e.copy(name = "postLoad")
+  }
 }

@@ -24,33 +24,19 @@
 
 package com.byteslounge.slickrepo.repository
 
-import com.byteslounge.slickrepo.test.LifecycleEntityRepositoryPostLoad
+import com.byteslounge.slickrepo.annotation.postLoad
+import com.byteslounge.slickrepo.test.{H2Config, LifecycleEntityRepositoryPostLoad}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 class LifecycleHelperTest extends FlatSpec with BeforeAndAfter with Matchers {
 
   "The LifecycleHelper" should "detect that an entity does not define a handler" in {
-    LifecycleHelper.isLifecycleHandlerDefined(classOf[PersonRepository], POSTLOAD) should equal(false)
+    new PersonRepository(H2Config.config.driver)
+    LifecycleHelper.isLifecycleHandlerDefined(classOf[PersonRepository], classOf[postLoad]) should equal(false)
   }
 
   it should "detect that an entity defines a handler" in {
-    LifecycleHelper.isLifecycleHandlerDefined(classOf[LifecycleEntityRepositoryPostLoad], POSTLOAD) should equal(true)
+    new LifecycleEntityRepositoryPostLoad(H2Config.config.driver)
+    LifecycleHelper.isLifecycleHandlerDefined(classOf[LifecycleEntityRepositoryPostLoad], classOf[postLoad]) should equal(true)
   }
-
-  it should "cache the result for an entity that does not define a handler" in {
-    val key = LifecycleHandlerCacheKey(classOf[PersonRepository], POSTLOAD)
-    LifecycleHelper.lifecycleHandlerCache.clear()
-    LifecycleHelper.lifecycleHandlerCache.get(key).isDefined should equal(false)
-    LifecycleHelper.isLifecycleHandlerDefined(classOf[PersonRepository], POSTLOAD)
-    LifecycleHelper.lifecycleHandlerCache.get(key).get should equal(false)
-  }
-
-  it should "cache the result for an entity that defines a handler" in {
-    val key = LifecycleHandlerCacheKey(classOf[LifecycleEntityRepositoryPostLoad], POSTLOAD)
-    LifecycleHelper.lifecycleHandlerCache.clear()
-    LifecycleHelper.lifecycleHandlerCache.get(key).isDefined should equal(false)
-    LifecycleHelper.isLifecycleHandlerDefined(classOf[LifecycleEntityRepositoryPostLoad], POSTLOAD)
-    LifecycleHelper.lifecycleHandlerCache.get(key).get should equal(true)
-  }
-
 }

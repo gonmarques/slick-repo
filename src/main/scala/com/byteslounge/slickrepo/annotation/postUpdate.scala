@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 Gonçalo Marques
+ * Copyright (c) 2018 Gonçalo Marques
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,8 @@
  * SOFTWARE.
  */
 
-package com.byteslounge.slickrepo.repository
+package com.byteslounge.slickrepo.annotation
 
-import com.byteslounge.slickrepo.meta.Entity
-import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+import scala.annotation.StaticAnnotation
 
-/**
- * Repository used to execute CRUD operations against a database for
- * a given entity type.
- */
-abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) extends BaseRepository[T, ID]
+class postUpdate extends StaticAnnotation
