@@ -308,45 +308,28 @@ When such a method is called for a given entity, that entity will be pessimistic
 The repositories may define listeners that are invoked by the library when certain actions take place. For instance, a given repository may define a `prePersist` listener which will be invoked just before an entity that is managed by that repository is persisted:
 
 ```scala
+import com.byteslounge.slickrepo.annotation.prePersist
+
 class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int](driver) {
 
   // ....
 
-  override val prePersist = (e: Coffee) => e.copy(username = currentUser())
+  @prePersist
+  def setUsername(e: Coffee): Coffee = e.copy(username = currentUser())
 }
 ```
 
 In this example the repository is defining a `prePersist` listener that is responsible for setting up the current logged in user in a `Coffee` entity instance that is about to be persisted.
 
-The following listeners are supported by the repositories:
+The following listeners are supported by the repositories (each listener being a method `(t: T)T`):
 
- - `val postLoad: (T => T)`
-
- Executed after an entity has been loaded.
-
- - `val prePersist: (T => T)`
-
- Executed before an entity is persisted.
-
- - `val postPersist: (T => T)`
-
- Executed after an entity has been persisted.
-
- - `val preUpdate: (T => T)`
-
- Executed before an entity is updated.
-
- - `val postUpdate: (T => T)`
-
- Executed after an entity has been updated.
-
- - `val preDelete: (T => T)`
-
- Executed before an entity is deleted.
-
- - `val postDelete: (T => T)`
-
- Executed after an entity has been deleted.
+ - `@postLoad`: Executed after an entity has been loaded.
+ - `@prePersist`: Executed before an entity is persisted.
+ - `@postPersist`: Executed after an entity has been persisted.
+ - `@preUpdate`: Executed before an entity is updated.
+ - `@postUpdate`: Executed after an entity has been updated.
+ - `@preDelete`: Executed before an entity is deleted.
+ - `@postDelete`: Executed after an entity has been deleted.
 
 ## Usage examples
 
