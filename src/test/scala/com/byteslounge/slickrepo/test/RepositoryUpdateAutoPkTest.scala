@@ -37,4 +37,20 @@ abstract class RepositoryUpdateAutoPkTest(override val config: Config) extends R
     val read: Person = executeAction(personRepository.findOne(person.id.get)).get
     read.name should equal("smith")
   }
+
+  it should "call multiple life cycle events for a full event inheritance setup" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(userRepository.save(User(None, "USERNAME", None, None)))
+    val read = executeAction(userRepository.findOne(entity.id.get)).get
+
+    read.createdTime.get should equal(11)
+    read.updatedTime should equal(None)
+    read.username should equal("username")
+
+    val updated = executeAction(userRepository.update(read.copy(username = "UPDATED")))
+
+    updated.createdTime.get should equal(11)
+    updated.updatedTime.get should equal(22)
+    updated.username should equal("updated")
+  }
 }
