@@ -24,7 +24,7 @@
 
 package com.byteslounge.slickrepo.test
 
-import com.byteslounge.slickrepo.repository._
+import com.byteslounge.slickrepo.repository.{UserRepository, _}
 import com.byteslounge.slickrepo.test.scalaversion.OracleProfile
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
@@ -44,6 +44,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val personRepository = new PersonRepository(driver)
   val carRepository = new CarRepository(driver)
   val coffeeRepository = new CoffeeRepository(driver)
+  val userRepository = new UserRepository(driver)
   val testIntegerVersionedEntityRepository = new TestIntegerVersionedEntityRepository(driver)
   val testIntegerVersionedAutoPkEntityRepository = new TestIntegerVersionedAutoPkEntityRepository(driver)
   val testLongVersionedEntityRepository = new TestLongVersionedEntityRepository(driver)
@@ -95,6 +96,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         personRepository.tableQuery.schema.create,
         carRepository.tableQuery.schema.create,
         coffeeRepository.tableQuery.schema.create,
+        userRepository.tableQuery.schema.create,
         testIntegerVersionedEntityRepository.tableQuery.schema.create,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.create,
         testLongVersionedEntityRepository.tableQuery.schema.create,
@@ -117,6 +119,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
         coffeeRepository.tableQuery.schema.drop,
         carRepository.tableQuery.schema.drop,
         personRepository.tableQuery.schema.drop,
+        userRepository.tableQuery.schema.drop,
         testIntegerVersionedEntityRepository.tableQuery.schema.drop,
         testIntegerVersionedAutoPkEntityRepository.tableQuery.schema.drop,
         testLongVersionedEntityRepository.tableQuery.schema.drop,
