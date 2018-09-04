@@ -3,7 +3,7 @@
 |MySQL, Oracle, DB2, PostgreSQL, Derby, H2, Hsql|Travis CI|[![Build status](https://travis-ci.org/gonmarques/slick-repo.svg?branch=master)](https://travis-ci.org/gonmarques/slick-repo)|
 |SQLServer|AppVeyor|[![Build status](https://ci.appveyor.com/api/projects/status/3httes30fa1foes1/branch/master?svg=true)](https://ci.appveyor.com/project/gonmarques/slick-repo)|
 
-[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.4.4-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
+[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.5.1-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
 
 # slick-repo
 
@@ -20,7 +20,7 @@ Slick Repositories is an aggregation of common database operations in ready-to-b
 The library releases are available at [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo) for Scala **2.10**, **2.11** and **2.12**. In order to add the library as a dependency to your project:
 
 ```scala
-libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.4.4"
+libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.5.1"
 ```
 
 ## Introduction
@@ -321,7 +321,7 @@ class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coff
 
 In this example the repository is defining a `prePersist` listener that is responsible for setting up the current logged in user in a `Coffee` entity instance that is about to be persisted.
 
-The following listeners are supported by the repositories (each listener being a method `(t: T)T`):
+The following listeners are supported by the repositories:
 
  - `@postLoad`: Executed after an entity has been loaded.
  - `@prePersist`: Executed before an entity is persisted.
@@ -330,6 +330,85 @@ The following listeners are supported by the repositories (each listener being a
  - `@postUpdate`: Executed after an entity has been updated.
  - `@preDelete`: Executed before an entity is deleted.
  - `@postDelete`: Executed after an entity has been deleted.
+
+**Note**: Just like the `setUsername(e: Coffee): Coffee` example method that we have just seen above, all listener methods are expected to accept a single parameter which type must be compatible with the entity type that is handled by the repository. Each method return type must also be compatible with the repository entity type.
+
+### Extended listener configuration
+
+We may also create more complex scenarios with multiple listeners for the same event type, reuse listener methods, or use the same method in order to handle different event types.
+
+Following next is an example definition that configures a `User` entity and repository that implement the following requirements:
+
+ - When a user is saved for the first time its property `createdTime` is automatically set with the current timestamp
+ - When a user is updated its property `updatedTime` is automatically set with the current timestamp
+ - When a user is saved for the first time or updated, its property `username` is converted to lower case
+
+```scala
+trait Persistable[T] {
+  def withCreatedTime(createdTime: Long): T
+}
+
+trait Updatable[T] extends Persistable[T]{
+  def withUpdatedTime(updatedTime: Long): T
+}
+
+case class User(
+                 id: Option[Int],
+                 username: String,
+                 createdTime: Option[Long],
+                 updatedTime: Option[Long]
+)
+  extends Entity[User, Int]
+  with Updatable[User] {
+
+  def withId(id: Int): User = this.copy(id = Some(id))
+
+  def withCreatedTime(createdTime: Long): User = this.copy(createdTime = Some(createdTime))
+
+  def withUpdatedTime(updatedTime: Long): User = this.copy(updatedTime = Some(updatedTime))
+}
+
+abstract class PersistableRepository[T <: Persistable[T] with Entity[T, ID], ID](override val driver: JdbcProfile)
+  extends Repository[T, ID](driver) {
+
+  @prePersist
+  private def prePersist(entity: T): T = {
+    entity.withCreatedTime(Instant.now().toEpochMilli)
+  }
+}
+
+abstract class UpdatableRepository[T <: Updatable[T] with Entity[T, ID], ID](override val driver: JdbcProfile)
+  extends PersistableRepository[T, ID](driver) {
+
+  @preUpdate
+  private def preUpdate(entity: T): T = {
+    entity.withUpdatedTime(Instant.now().toEpochMilli)
+  }
+}
+
+class UserRepository(override val driver: JdbcProfile) extends UpdatableRepository[User, Int](driver) {
+
+  import driver.api._
+  val pkType = implicitly[BaseTypedType[Int]]
+  val tableQuery = TableQuery[Users]
+  type TableType = Users
+
+  class Users(tag: slick.lifted.Tag) extends Table[User](tag, "USER") with Keyed[Int] {
+    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def username = column[String]("USERNAME")
+    def createdTime = column[Long]("CREATED_TIME")
+    def updatedTime = column[Option[Long]]("UPDATED_TIME")
+
+    def * = (id.?, username, createdTime.?, updatedTime) <> ((User.apply _).tupled, User.unapply)
+  }
+
+  @prePersist
+  @preUpdate
+  private def normalizeUsername(user: User): User = {
+    user.copy(username = user.username.toLowerCase())
+  }
+}
+```
 
 ## Usage examples
 
