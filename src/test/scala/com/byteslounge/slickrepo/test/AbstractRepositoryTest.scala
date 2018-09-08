@@ -65,6 +65,7 @@ abstract class AbstractRepositoryTest(val config: Config) extends FlatSpec with 
   val lifecycleVersionedEntityRepositoryManualPk = new LifecycleVersionedEntityRepositoryManualPk(driver)
   val lifecycleEntityRepositoryHandlerWrongHandlerParameterType = new LifecycleEntityRepositoryHandlerWrongHandlerParameterType(driver)
   val lifecycleEntityRepositoryHandlerWrongHandlerParameterNumber = new LifecycleEntityRepositoryHandlerWrongHandlerParameterNumber(driver)
+  val lifecycleEntityRepositoryHandlersInTraits = new LifecycleEntityRepositoryHandlersInTraits(driver)
 
   def executeAction[X](action: DBIOAction[X, NoStream, _]): X = {
     Await.result(db.run(action), Duration.Inf)

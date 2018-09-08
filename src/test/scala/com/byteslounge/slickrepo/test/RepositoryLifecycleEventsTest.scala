@@ -194,6 +194,14 @@ abstract class RepositoryLifecycleEventsTest(override val config: Config) extend
     read.name should equal("prePersist")
   }
 
+  it should "event handler in trait" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val entity = executeAction(lifecycleEntityRepositoryHandlersInTraits.save(LifecycleEntity(None, "john", "f1", "f2")))
+    val read = executeAction(lifecycleEntityRepositoryHandlersInTraits.findOne(entity.id.get)).get
+    read.field1 should equal("prePersist")
+    read.field2 should equal("postLoad")
+  }
+
   it should "event handlers with same name as private methods are both called" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val entity = executeAction(lifecycleEntityRepositoryPrivateHandlerSubClass.save(LifecycleEntity(None, "john", "f1", "f2")))
@@ -538,4 +546,21 @@ class LifecycleEntityRepositoryHandlerWrongHandlerParameterNumber(override val d
   def prePersist(e: LifecycleEntity, e2: LifecycleEntity) = {
     e.copy(name = "postLoad")
   }
+}
+
+trait PrePersistTrait {
+  @prePersist
+  def prePersist(e: LifecycleEntity) = {
+    e.copy(field1 = "prePersist")
+  }
+}
+
+trait PostLoadTrait {
+  @postLoad
+  def postLoad(e: LifecycleEntity) = {
+    e.copy(field2 = "postLoad")
+  }
+}
+
+class LifecycleEntityRepositoryHandlersInTraits(override val driver: JdbcProfile) extends LifecycleEntityRepository(driver) with PrePersistTrait with PostLoadTrait {
 }
