@@ -410,6 +410,8 @@ class UserRepository(override val driver: JdbcProfile) extends UpdatableReposito
 }
 ```
 
+**Note**: It is possible to define more than a single handler for the same event type by using parent or sub classes. In such case the handler execution order for that particular event type is parent class first.
+
 ## Usage examples
 
 ### Play Framework
