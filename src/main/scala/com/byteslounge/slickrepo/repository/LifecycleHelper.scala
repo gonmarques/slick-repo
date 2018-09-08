@@ -56,10 +56,9 @@ class LifecycleHelper {
     */
   def createLifecycleHandler[T <: Entity[T, ID], ID](repo: BaseRepository[T, ID], handlerType: Class[_ <: StaticAnnotation]): (T => T) = {
     val baseRepositoryClass = classOf[BaseRepository[_, _]]
-    val mirror = runtimeMirror(getClass.getClassLoader)
-
     var methods: Seq[(Type, String)] = Seq()
     var repositoryClass: Class[_] = repo.getClass
+    val mirror = runtimeMirror(repositoryClass.getClassLoader)
 
     while (baseRepositoryClass.isAssignableFrom(repositoryClass)) {
       methods = getHandlerMethods(mirror, repositoryClass, handlerType) ++: methods
