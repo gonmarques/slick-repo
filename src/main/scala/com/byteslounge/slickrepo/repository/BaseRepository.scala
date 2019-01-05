@@ -25,9 +25,8 @@
 package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.annotation._
-import com.byteslounge.slickrepo.meta.{Entity, Keyed}
+import com.byteslounge.slickrepo.meta.Entity
 import com.byteslounge.slickrepo.scalaversion.{JdbcProfile, RelationalProfile}
-import slick.ast.BaseTypedType
 import slick.lifted.AppliedCompiledFunction
 
 import scala.annotation.StaticAnnotation
@@ -37,17 +36,18 @@ import scala.concurrent.ExecutionContext
   * Repository used to execute CRUD operations against a database for
   * a given entity type.
   */
-abstract class BaseRepository[T <: Entity[T, ID], ID] {
+trait BaseRepository[T <: Entity[T, ID], ID] {
 
   protected val driver: JdbcProfile
 
   import driver.api._
 
-  type TableType <: Keyed[ID] with RelationalProfile#Table[T]
-  def pkType: BaseTypedType[ID]
-  implicit lazy val _pkType: BaseTypedType[ID] = pkType
+  type TableType <: RelationalProfile#Table[T]
   def tableQuery: TableQuery[TableType]
+
   type F = AppliedCompiledFunction[_, Query[TableType, T, Seq], Seq[T]]
+
+  protected def findOneQuery(id: ID): F
 
   /**
     * Finds all entities.
@@ -60,14 +60,14 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     * Finds a given entity by its primary key.
     */
   def findOne(id: ID)(implicit ec: ExecutionContext): DBIO[Option[T]] = {
-    findOneCompiled(id).result.headOption.map(e => e.map(_postLoad))
+    findOneQuery(id).result.headOption.map(e => e.map(_postLoad))
   }
 
   /**
     * Locks an entity using a pessimistic lock.
     */
   def lock(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
-    val result = findOneCompiled(entity.id.get).result
+    val result = findOneQuery(entity.id.get).result
     result.overrideStatements(
       Seq(exclusiveLockStatement(result.statements.head))
     ).map(_ => entity)
@@ -103,7 +103,7 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
   protected def getGeneratedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
       val transformed = transformer(_prePersist(entity))
-      (saveCompiled += transformed).map(id => _postPersist(transformed.withId(id)))(ec)
+      (saveCompiled += transformed).map(entity => _postPersist(transformed.withId(entity.id.get)))(ec)
     }
 
   /**
@@ -165,7 +165,7 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     * Update finder
     */
   protected def updateFinder(entity: T): F =
-    findOneCompiled(entity.id.get)
+    findOneQuery(entity.id.get)
 
   /**
     * Updater
@@ -190,7 +190,7 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
     */
   def delete(entity: T)(implicit ec: ExecutionContext): DBIO[T] = {
     val preDeleted = _preDelete(entity)
-    findOneCompiled(entity.id.get).delete.map(_ => _postDelete(preDeleted))
+    findOneQuery(entity.id.get).delete.map(_ => _postDelete(preDeleted))
   }
 
   /**
@@ -228,9 +228,8 @@ abstract class BaseRepository[T <: Entity[T, ID], ID] {
   }
 
   lazy protected val tableQueryCompiled = Compiled(tableQuery)
-  lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
-  lazy protected val saveCompiled = tableQuery returning tableQuery.map(_.id)
-  lazy private val countCompiled = Compiled(tableQuery.map(_.id).length)
+  lazy protected val saveCompiled = tableQuery returning tableQuery
+  lazy private val countCompiled = Compiled(tableQuery.length)
 
   private val _postLoad: (T => T) = createHandler(classOf[postLoad])
   private val _prePersist: (T => T) = createHandler(classOf[prePersist])

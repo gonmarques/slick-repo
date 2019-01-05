@@ -24,11 +24,24 @@
 
 package com.byteslounge.slickrepo.repository
 
-import com.byteslounge.slickrepo.meta.Entity
-import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+import com.byteslounge.slickrepo.meta.{Entity, Keyed}
+import com.byteslounge.slickrepo.scalaversion.{JdbcProfile, RelationalProfile}
+import slick.ast.BaseTypedType
 
 /**
  * Repository used to execute CRUD operations against a database for
  * a given entity type.
  */
-abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) extends BaseRepository[T, ID]
+abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) extends BaseRepository[T, ID] {
+
+  import driver.api._
+
+  type TableType <: Keyed[ID] with RelationalProfile#Table[T]
+  def pkType: BaseTypedType[ID]
+  implicit lazy val _pkType: BaseTypedType[ID] = pkType
+  def tableQuery: TableQuery[TableType]
+
+  lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
+
+  override protected def findOneQuery(id: ID): F = findOneCompiled(id)
+}
