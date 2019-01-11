@@ -44,4 +44,8 @@ abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) exten
   lazy protected val findOneCompiled = Compiled((id: Rep[ID]) => tableQuery.filter(_.id === id))
 
   override protected def findOneQuery(id: ID): F = findOneCompiled(id)
+
+  override protected lazy val saveQuery: driver.IntoInsertActionComposer[T, ID] =
+    tableQuery returning tableQuery.map(_.id)
+  
 }

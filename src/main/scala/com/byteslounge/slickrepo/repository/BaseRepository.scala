@@ -97,13 +97,15 @@ trait BaseRepository[T <: Entity[T, ID], ID] {
   protected val generatedIdPersister: (T, ExecutionContext) => DBIO[T] =
     getGeneratedIdPersister(identity)
 
+  protected[this] def saveQuery: driver.IntoInsertActionComposer[T, ID]
+
   /**
     * Builds a generated ID persister
     */
   protected def getGeneratedIdPersister(transformer: T => T): (T, ExecutionContext) => DBIO[T] =
     (entity: T, ec: ExecutionContext) => {
       val transformed = transformer(_prePersist(entity))
-      (saveCompiled += transformed).map(entity => _postPersist(transformed.withId(entity.id.get)))(ec)
+      (saveQuery += transformed).map(id => _postPersist(transformed.withId(id)))(ec)
     }
 
   /**
@@ -228,7 +230,6 @@ trait BaseRepository[T <: Entity[T, ID], ID] {
   }
 
   lazy protected val tableQueryCompiled = Compiled(tableQuery)
-  lazy protected val saveCompiled = tableQuery returning tableQuery
   lazy private val countCompiled = Compiled(tableQuery.length)
 
   private val _postLoad: (T => T) = createHandler(classOf[postLoad])
