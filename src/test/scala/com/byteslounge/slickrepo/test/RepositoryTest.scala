@@ -77,6 +77,7 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
       ).result.head
     )
     composite.id.get should equal(read.id.get)
+    read.someField should equal("some value")
   }
 
   it should "delete an entity" in {

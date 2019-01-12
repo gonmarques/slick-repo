@@ -25,8 +25,8 @@
 package com.byteslounge.slickrepo.repository
 
 import com.byteslounge.slickrepo.meta.{Entity, Keyed}
-import slick.ast.BaseTypedType
 import com.byteslounge.slickrepo.scalaversion.JdbcProfile
+import slick.ast.BaseTypedType
 import slick.lifted.ProvenShape
 
 
@@ -44,11 +44,6 @@ class CompositeRepository(override val driver: JdbcProfile) extends Repository[C
   type TableType = Composites
 
   class Composites(tag: slick.lifted.Tag) extends Table[Composite](tag, "COMPOSITE") with Keyed[CompositeId] {
-
-    implicit def tupleToId(tuple: (Option[Int], Option[Int])): Option[CompositeId] = tuple match {
-      case (Some(idOne), Some(idTwo)) => Some(CompositeId(idOne, idTwo))
-      case _                              => None
-    }
 
     def id = (idOne, idTwo) <> (CompositeId.tupled, CompositeId.unapply)
     def idOne = column[Int]("ID_ONE")
