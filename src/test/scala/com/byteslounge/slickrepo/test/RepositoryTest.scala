@@ -68,6 +68,17 @@ abstract class RepositoryTest(override val config: Config) extends AbstractRepos
     coffee.id.get should equal(read.id.get)
   }
 
+  it should "save an entity with a composite ID" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val composite: Composite = executeAction(compositeRepository.save(Composite(Option(CompositeId(1, 2)), "some value")))
+    val read: Composite = executeAction(
+      compositeRepository.tableQuery.filter(
+        c => c.idOne === 1 && c.idTwo === 2
+      ).result.head
+    )
+    composite.id.get should equal(read.id.get)
+  }
+
   it should "delete an entity" in {
     import scala.concurrent.ExecutionContext.Implicits.global
     val person: Person = executeAction(personRepository.save(Person(None, "john")))
