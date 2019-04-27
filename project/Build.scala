@@ -137,10 +137,10 @@ object Build extends Build {
         name := "mysql"
       )
 
-  lazy val oracle: Project =
-    Project("oracle", file("src/docker/oracle"))
+  lazy val oracleBuild: Project =
+    Project("oracle-build", file("src/docker/oracle-build"))
       .settings(
-        name := "oracle"
+        name := "oracle-build"
       )
 
   lazy val db2: Project =
@@ -175,6 +175,6 @@ object Build extends Build {
   def getSlickDependency(slickComponent: String, version: String): ModuleID = {
     "com.typesafe.slick" %
     (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
-    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.2.3"})
+    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.3.0"})
   }
 }

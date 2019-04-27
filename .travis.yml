@@ -27,7 +27,7 @@ language: scala
 script: >
   sbt compile &&
   sbt "project mysql" docker &&
-  sbt "project oracle" docker &&
+  sbt "project oracle-build" buildOracle &&
   sbt "project postgres" docker &&
   sbt "project mysql" dockerComposeUp &&
   sbt test &&
