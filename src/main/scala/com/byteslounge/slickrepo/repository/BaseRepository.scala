@@ -37,7 +37,7 @@ import scala.concurrent.ExecutionContext
   * Repository used to execute CRUD operations against a database for
   * a given entity type.
   */
-abstract class BaseRepository[T <: Entity[T, ID], ID] {
+trait BaseRepository[T <: Entity[T, ID], ID] {
 
   protected val driver: JdbcProfile
 
