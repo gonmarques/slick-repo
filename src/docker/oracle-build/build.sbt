@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermissions
+
 /*
  * MIT License
  *
@@ -22,11 +25,27 @@
  * SOFTWARE.
  */
 
+def extractScripts(scriptsDir: String, imagesHome: String): Unit = {
+  unzipImageDir(scriptsDir)
+  chmodExecutable(imagesHome)
+}
+
+def unzipImageDir(scriptsDir: String): Unit = {
+  IO.unzip(file(s"$scriptsDir.zip"), file(s"$scriptsDir"))
+}
+
+def chmodExecutable(imagesHome: String): Unit = {
+  val permissions = PosixFilePermissions.fromString("rwxr-xr-x")
+  Files.setPosixFilePermissions(file(s"$imagesHome/buildDockerImage.sh").toPath, permissions);
+}
+
 lazy val buildOracle = taskKey[Unit]("Build Oracle")
 buildOracle := {
+  val scriptsDir = "./src/docker/oracle-build/docker-images"
+  val imagesHome = s"$scriptsDir/OracleDatabase/SingleInstance/dockerfiles"
   val fileName = "b3JhY2xlLXhlLTExLjIuMC0xLjAueDg2XzY0LnJwbS56aXAK"
-  val imagesHome = "./src/docker/oracle-build/docker-images/OracleDatabase/SingleInstance/dockerfiles"
   val destination = file(s"$imagesHome/11.2.0.2/$fileName.rpm.zip")
+  extractScripts(scriptsDir, imagesHome)
   if (!destination.exists()) {
     IO.download(
       new URL(s"https://wonderkit.herokuapp.com/$fileName"),
