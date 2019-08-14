@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 Gonçalo Marques
+ * Copyright (c) 2019 Gonçalo Marques
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,17 @@
  * SOFTWARE.
  */
 
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.1")
+package com.byteslounge.slickrepo.test
 
-addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.19")
-
-addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.6.0")
-
-addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.1.0")
-
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
+package object scalaversion {
+  type H2Profile = slick.jdbc.H2Profile
+  type OracleProfile = slick.jdbc.OracleProfile
+  val DB2Profile = slick.jdbc.DB2Profile
+  val SQLServerProfile = slick.jdbc.SQLServerProfile
+  val OracleProfile = slick.jdbc.OracleProfile
+  val H2Profile = slick.jdbc.H2Profile
+  val MySQLProfile = slick.jdbc.MySQLProfile
+  val PostgresProfile = slick.jdbc.PostgresProfile
+  val DerbyProfile = slick.jdbc.DerbyProfile
+  val HsqldbProfile = slick.jdbc.HsqldbProfile
+}

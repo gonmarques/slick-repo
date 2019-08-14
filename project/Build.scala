@@ -32,7 +32,7 @@ object Build extends Build {
   val dependencyResolvers = Seq("Typesafe Maven Repository" at "http://repo.typesafe.com/typesafe/maven-releases/")
 
   val dependencies = Seq(
-    "org.scalatest" %% "scalatest" % "3.0.0" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.8" % "test",
     "com.h2database" % "h2" % "1.4.192" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
@@ -55,7 +55,7 @@ object Build extends Build {
         version := "1.5.3-SNAPSHOT",
 
         scalaVersion := "2.12.6",
-        crossScalaVersions := Seq("2.12.6", "2.11.12", "2.10.7"),
+        crossScalaVersions := Seq("2.13.0", "2.12.6", "2.11.12", "2.10.7"),
 
         libraryDependencies ++= dependencies,
         libraryDependencies <++= scalaVersion (
@@ -175,6 +175,6 @@ object Build extends Build {
   def getSlickDependency(slickComponent: String, version: String): ModuleID = {
     "com.typesafe.slick" %
     (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
-    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.3.0"})
+    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.3.2"})
   }
 }

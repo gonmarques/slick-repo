@@ -31,7 +31,7 @@ import com.byteslounge.slickrepo.meta.Entity
 
 import scala.annotation.StaticAnnotation
 import scala.collection.concurrent.Map
-import scala.collection.convert.decorateAsScala._
+import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
 
 /**

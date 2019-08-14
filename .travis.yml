@@ -32,11 +32,7 @@ script: >
   sbt "project mysql" dockerComposeUp &&
   sbt test &&
   sbt alldbs:test &&
-  sbt "project mysql" dockerComposeStop &&
-  sbt "project db2" docker &&
-  sbt "project db2" dockerComposeUp &&
-  sbt db2:test &&
-  sbt "project db2" dockerComposeStop
+  sbt "project mysql" dockerComposeStop
 after_success:
 - sbt coverageReport coveralls
 env:
