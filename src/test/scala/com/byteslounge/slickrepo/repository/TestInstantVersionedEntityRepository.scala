@@ -34,7 +34,7 @@ case class TestInstantVersionedEntity(override val id: Option[Int], price: Doubl
   def withVersion(version: InstantVersion): TestInstantVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestInstantVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestInstantVersionedEntity, Int, InstantVersion](driver) {
+class TestInstantVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestInstantVersionedEntity, Int, InstantVersion] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]

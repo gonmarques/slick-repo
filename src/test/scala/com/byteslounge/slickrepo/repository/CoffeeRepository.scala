@@ -32,7 +32,7 @@ case class Coffee(override val id: Option[Int], brand: String) extends Entity[Co
   def withId(id: Int): Coffee = this.copy(id = Some(id))
 }
 
-class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int](driver) {
+class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]

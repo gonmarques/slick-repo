@@ -33,7 +33,7 @@ case class TestIntegerVersionedEntity(override val id: Option[Int], price: Doubl
   def withVersion(version: Int): TestIntegerVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestIntegerVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestIntegerVersionedEntity, Int, Int](driver) {
+class TestIntegerVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestIntegerVersionedEntity, Int, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]

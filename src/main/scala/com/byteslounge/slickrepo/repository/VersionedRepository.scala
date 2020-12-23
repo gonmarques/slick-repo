@@ -41,7 +41,7 @@ import scala.concurrent.ExecutionContext
  * Repository used to execute CRUD operations against a database for
  * a given versioned entity type.
  */
-abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : VersionGenerator] (override val driver: JdbcProfile) extends Repository[T, ID](driver) {
+abstract class VersionedRepository[T <: VersionedEntity[T, ID, V], ID, V : VersionGenerator] extends Repository[T, ID] {
 
   import driver.api._
 
