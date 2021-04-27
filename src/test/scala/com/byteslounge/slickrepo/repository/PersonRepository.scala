@@ -32,7 +32,7 @@ case class Person(override val id: Option[Int] = None, name: String) extends Ent
   def withId(id: Int): Person = this.copy(id = Some(id))
 }
 
-class PersonRepository(override val driver: JdbcProfile) extends Repository[Person, Int](driver) {
+class PersonRepository(override val driver: JdbcProfile) extends Repository[Person, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]

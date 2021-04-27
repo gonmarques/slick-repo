@@ -54,7 +54,7 @@ case class User(
 }
 
 abstract class PersistableRepository[T <: Persistable[T] with Entity[T, ID], ID](override val driver: JdbcProfile)
-  extends Repository[T, ID](driver) {
+  extends Repository[T, ID] {
 
   @prePersist
   private def prePersist(entity: T): T = {

@@ -277,7 +277,7 @@ case class LifecycleEntity(override val id: Option[Int] = None, name: String, fi
   def withId(id: Int): LifecycleEntity = this.copy(id = Some(id))
 }
 
-abstract class LifecycleEntityRepository(override val driver: JdbcProfile) extends Repository[LifecycleEntity, Int](driver) {
+abstract class LifecycleEntityRepository(override val driver: JdbcProfile) extends Repository[LifecycleEntity, Int] {
 
   import driver.api._
 
@@ -303,7 +303,7 @@ case class LifecycleEntityManualPk(override val id: Option[Int], name: String, f
   def withId(id: Int): LifecycleEntityManualPk = this.copy(id = Some(id))
 }
 
-class LifecycleEntityRepositoryManualPk(override val driver: JdbcProfile) extends Repository[LifecycleEntityManualPk, Int](driver) {
+class LifecycleEntityRepositoryManualPk(override val driver: JdbcProfile) extends Repository[LifecycleEntityManualPk, Int] {
 
   import driver.api._
 
@@ -416,7 +416,7 @@ case class LifecycleVersionedEntity(override val id: Option[Int] = None, name: S
   def withVersion(version: Int): LifecycleVersionedEntity = this.copy(version = Some(version))
 }
 
-abstract class LifecycleVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntity, Int, Int](driver) {
+abstract class LifecycleVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntity, Int, Int] {
 
   import driver.api._
 
@@ -445,7 +445,7 @@ case class LifecycleVersionedEntityManualPk(override val id: Option[Int] = None,
   def withVersion(version: Int): LifecycleVersionedEntityManualPk = this.copy(version = Some(version))
 }
 
-class LifecycleVersionedEntityRepositoryManualPk(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntityManualPk, Int, Int](driver) {
+class LifecycleVersionedEntityRepositoryManualPk(override val driver: JdbcProfile) extends VersionedRepository[LifecycleVersionedEntityManualPk, Int, Int] {
 
   import driver.api._
 

@@ -33,7 +33,7 @@ case class TestIntegerVersionedAutoPkEntity(override val id: Option[Int], price:
   def withVersion(version: Int): TestIntegerVersionedAutoPkEntity = this.copy(version = Some(version))
 }
 
-class TestIntegerVersionedAutoPkEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestIntegerVersionedAutoPkEntity, Int, Int](driver) {
+class TestIntegerVersionedAutoPkEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestIntegerVersionedAutoPkEntity, Int, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]

@@ -37,7 +37,7 @@ case class TestJodaTimeVersionedEntity(override val id: Option[Int], price: Doub
   def withVersion(version: Instant): TestJodaTimeVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestJodaTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestJodaTimeVersionedEntity, Int, Instant](driver) {
+class TestJodaTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestJodaTimeVersionedEntity, Int, Instant] {
 
   import driver.api._
 

@@ -31,4 +31,4 @@ import com.byteslounge.slickrepo.scalaversion.JdbcProfile
  * Repository used to execute CRUD operations against a database for
  * a given entity type.
  */
-abstract class Repository[T <: Entity[T, ID], ID](val driver: JdbcProfile) extends BaseRepository[T, ID]
+abstract class Repository[T <: Entity[T, ID], ID] extends BaseRepository[T, ID]

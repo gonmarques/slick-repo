@@ -36,7 +36,7 @@ case class Composite(override val id: Option[CompositeId], someField: String) ex
   def withId(id: CompositeId): Composite = this.copy(id = Some(id))
 }
 
-class CompositeRepository(override val driver: JdbcProfile) extends Repository[Composite, CompositeId](driver) {
+class CompositeRepository(override val driver: JdbcProfile) extends Repository[Composite, CompositeId] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[CompositeId]]

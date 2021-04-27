@@ -34,7 +34,7 @@ case class TestLocalDateTimeVersionedEntity(override val id: Option[Int], price:
   def withVersion(version: LocalDateTimeVersion): TestLocalDateTimeVersionedEntity = this.copy(version = Some(version))
 }
 
-class TestLocalDateTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestLocalDateTimeVersionedEntity, Int, LocalDateTimeVersion](driver) {
+class TestLocalDateTimeVersionedEntityRepository(override val driver: JdbcProfile) extends VersionedRepository[TestLocalDateTimeVersionedEntity, Int, LocalDateTimeVersion] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
