@@ -3,7 +3,7 @@
 |MySQL, Oracle, DB2, PostgreSQL, Derby, H2, Hsql|Travis CI|[![Build status](https://travis-ci.org/gonmarques/slick-repo.svg?branch=master)](https://travis-ci.org/gonmarques/slick-repo)|
 |SQLServer|AppVeyor|[![Build status](https://ci.appveyor.com/api/projects/status/3httes30fa1foes1/branch/master?svg=true)](https://ci.appveyor.com/project/gonmarques/slick-repo)|
 
-[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.5.3-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
+[![Coverage Status](https://coveralls.io/repos/github/gonmarques/slick-repo/badge.svg?branch=master)](https://coveralls.io/github/gonmarques/slick-repo)&nbsp;&nbsp;&nbsp;[![Latest Release](https://img.shields.io/badge/release-v1.6.1-007ec6.svg)](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo)&nbsp;&nbsp;&nbsp;[![MIT License](https://img.shields.io/badge/license-MIT-7c39ef.svg)](http://opensource.org/licenses/MIT)
 
 # slick-repo
 
@@ -20,7 +20,7 @@ Slick Repositories is an aggregation of common database operations in ready-to-b
 The library releases are available at [Maven Central](https://search.maven.org/#search%7Cga%7C1%7Cbyteslounge%20slick-repo) for Scala **2.10**, **2.11**, **2.12** and **2.13**. In order to add the library as a dependency to your project:
 
 ```scala
-libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.5.3"
+libraryDependencies += "com.byteslounge" %% "slick-repo" % "1.6.1"
 ```
 
 ## Introduction
@@ -32,7 +32,7 @@ case class Coffee(override val id: Option[Int], brand: String) extends Entity[Co
   def withId(id: Int): Coffee = this.copy(id = Some(id))
 }
 
-class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int](driver) {
+class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
@@ -135,7 +135,7 @@ The repositories support the following common database operations:
 It is possible to define custom queries or statements inside a repository. Even queries that access multiple tables:
 
 ```scala
-class PersonRepository(override val driver: JdbcProfile) extends Repository[Person, Int](driver) {
+class PersonRepository(override val driver: JdbcProfile) extends Repository[Person, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
@@ -199,7 +199,7 @@ case class Coffee(override val id: Option[Int], brand: String, override val vers
 }
 
 class CoffeeRepository(override val driver: JdbcProfile)
-    extends VersionedRepository[Coffee, Int, Int](driver) {
+    extends VersionedRepository[Coffee, Int, Int] {
 
   import driver.api._
   val pkType = implicitly[BaseTypedType[Int]]
@@ -288,7 +288,7 @@ case class StringVersionedEntity(
 }
 
 class StringVersionedEntityRepository(override val driver: JdbcProfile)
-    extends VersionedRepository[StringVersionedEntity, Int, String](driver) {
+    extends VersionedRepository[StringVersionedEntity, Int, String] {
   // ...
 }
 ```
@@ -310,7 +310,7 @@ The repositories may define listeners that are invoked by the library when certa
 ```scala
 import com.byteslounge.slickrepo.annotation.prePersist
 
-class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int](driver) {
+class CoffeeRepository(override val driver: JdbcProfile) extends Repository[Coffee, Int] {
 
   // ....
 
@@ -369,7 +369,7 @@ case class User(
 }
 
 abstract class PersistableRepository[T <: Persistable[T] with Entity[T, ID], ID](override val driver: JdbcProfile)
-  extends Repository[T, ID](driver) {
+  extends Repository[T, ID] {
 
   @prePersist
   private def prePersist(entity: T): T = {
