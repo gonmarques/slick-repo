@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.1")
+addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.10.0")
 
-addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.19")
+addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.35")
 
-addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.6.0")
+addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "2.0.8")
 
-addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.1.0")
+addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.3.9")
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.2-1")

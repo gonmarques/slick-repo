@@ -25,7 +25,7 @@
 enablePlugins(DockerPlugin)
 enablePlugins(com.tapad.docker.DockerComposePlugin)
 
-dockerfile in docker := {
+docker / dockerfile := {
   new sbtdocker.mutable.Dockerfile {
     from("ibmcom/db2express-c:10.5.0.5-3.10.0")
     expose(50000)

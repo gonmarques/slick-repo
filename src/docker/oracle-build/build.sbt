@@ -47,8 +47,8 @@ buildOracle := {
   val destination = file(s"$imagesHome/11.2.0.2/$fileName.rpm.zip")
   extractScripts(scriptsDir, imagesHome)
   if (!destination.exists()) {
-    IO.download(
-      new URL(s"https://wonderkit.herokuapp.com/$fileName"),
+    IO.transfer(
+      IO.asFile(new URL(s"https://wonderkit.herokuapp.com/$fileName")),
       destination
     )
   }
