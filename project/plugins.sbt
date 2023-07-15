@@ -26,7 +26,7 @@ addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.10.0")
 
 addSbtPlugin("com.tapad" % "sbt-docker-compose" % "1.0.35")
 
-addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "2.0.8")
+addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "2.0.1")
 
 addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "1.3.9")
 

@@ -25,7 +25,7 @@
 enablePlugins(DockerPlugin)
 enablePlugins(com.tapad.docker.DockerComposePlugin)
 
-dockerfile in docker := {
+docker / dockerfile := {
   new sbtdocker.mutable.Dockerfile {
     from("mysql/mysql-server:5.7.15")
     expose(3306)
