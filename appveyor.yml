@@ -25,7 +25,7 @@ install:
       Add-Type -AssemblyName System.IO.Compression.FileSystem
       if (!(Test-Path -Path "C:\sbt" )) {
         (new-object System.Net.WebClient).DownloadFile(
-          'https://github.com/sbt/sbt/releases/download/v1.9.2/sbt-1.9.2.zip'
+          'https://github.com/sbt/sbt/releases/download/v1.9.2/sbt-1.9.2.zip',
           'C:\sbt.zip'
         )
         [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\sbt.zip", "C:\sbt")
