@@ -27,7 +27,7 @@ import sbt._
 import scoverage.ScoverageKeys._
 
 val dependencyResolvers = Seq(
-  "Typesafe Maven Repository" at "http://repo.typesafe.com/typesafe/maven-releases/"
+  "Typesafe Maven Repository" at "https://repo.typesafe.com/typesafe/maven-releases/"
 )
 
 val dependencies = Seq(
@@ -51,8 +51,8 @@ lazy val project: Project =
       name := "slick-repo",
       description := "CRUD Repositories for Slick based persistence Scala projects",
       version := "1.6.2-SNAPSHOT",
-      scalaVersion := "2.12.6",
-      crossScalaVersions := Seq("2.13.0", "2.12.6", "2.11.12", "2.10.7"),
+      scalaVersion := "2.12.16",
+      crossScalaVersions := Seq("2.13.0", "2.12.16", "2.11.12", "2.10.7"),
       libraryDependencies ++= dependencies,
       libraryDependencies ++= scalaVersion(version =>
         Seq(
@@ -69,7 +69,7 @@ lazy val project: Project =
       coverageEnabled := true,
       Test / testOptions := Seq(Tests.Filter(baseFilter)),
       Db2Test / testOptions := Seq(Tests.Filter(db2Filter)),
-      AllDbsTest /testOptions := Seq(Tests.Filter(allDbsFilter)),
+      AllDbsTest / testOptions := Seq(Tests.Filter(allDbsFilter)),
       SqlServerTest / testOptions := Seq(Tests.Filter(sqlServerFilter)),
       publishMavenStyle := true,
       organization := "com.byteslounge",
