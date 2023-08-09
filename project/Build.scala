@@ -25,6 +25,7 @@
 import sbt.Keys._
 import sbt._
 import scoverage.ScoverageKeys._
+import org.scoverage.coveralls.Imports.CoverallsKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends Build {
@@ -33,7 +34,7 @@ object Build extends Build {
 
   val dependencies = Seq(
     "org.scalatest" %% "scalatest" % "3.0.8" % "test",
-    "com.h2database" % "h2" % "1.4.192" % "test",
+    "com.h2database" % "h2" % "2.2.220" % "test",
     "mysql" % "mysql-connector-java" % "5.1.38" % "test",
     "org.postgresql" % "postgresql" % "9.4.1211" % "test",
     "org.slf4j" % "slf4j-simple" % "1.7.21" % "test",
@@ -44,18 +45,17 @@ object Build extends Build {
 
   lazy val project: Project =
     Project("root", file("."))
-      .configs(AllDbsTest, Db2Test, SqlServerTest)
+      .configs(AllDbsTest, SqlServerTest)
       .settings(inConfig(AllDbsTest)(Defaults.testTasks): _*)
-      .settings(inConfig(Db2Test)(Defaults.testTasks): _*)
       .settings(inConfig(SqlServerTest)(Defaults.testTasks): _*)
       .settings(
 
         name := "slick-repo",
         description := "CRUD Repositories for Slick based persistence Scala projects",
-        version := "1.6.2-SNAPSHOT",
+        version := "1.7.1",
 
         scalaVersion := "2.12.6",
-        crossScalaVersions := Seq("2.13.0", "2.12.6", "2.11.12", "2.10.7"),
+        crossScalaVersions := Seq("2.13.11", "2.12.6", "2.11.12", "2.10.7"),
 
         libraryDependencies ++= dependencies,
         libraryDependencies <++= scalaVersion (
@@ -70,10 +70,11 @@ object Build extends Build {
         resolvers ++= dependencyResolvers,
 
         parallelExecution in Test := false,
+
         coverageEnabled := true,
+        coverallsToken := Some("w171Cv0CW3ekjA5ASwb0mzWcUDoNaw93X"),
 
         testOptions in Test := Seq(Tests.Filter(baseFilter)),
-        testOptions in Db2Test := Seq(Tests.Filter(db2Filter)),
         testOptions in AllDbsTest := Seq(Tests.Filter(allDbsFilter)),
         testOptions in SqlServerTest := Seq(Tests.Filter(sqlServerFilter)),
 
@@ -135,16 +136,10 @@ object Build extends Build {
 
       )
 
-  lazy val mysql: Project =
-    Project("mysql", file("src/docker/mysql"))
+  lazy val itsetup: Project =
+    Project("itsetup", file("src/docker/itsetup"))
       .settings(
-        name := "mysql"
-      )
-
-  lazy val oracleBuild: Project =
-    Project("oracle-build", file("src/docker/oracle-build"))
-      .settings(
-        name := "oracle-build"
+        name := "itsetup"
       )
 
   lazy val db2: Project =
@@ -153,32 +148,30 @@ object Build extends Build {
         name := "db2"
       )
 
-  lazy val postgres: Project =
-    Project("postgres", file("src/docker/postgres"))
-      .settings(
-        name := "postgres"
-      )
-
-  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby", "Hsql")
-  val db2Prefix = Seq("DB2")
+  val dbPrefixes = Seq("MySQL", "Oracle", "Postgres", "Derby", "Hsql", "DB2")
   val sqlServerPrefix = Seq("SQLServer")
   lazy val AllDbsTest: Configuration = config("alldbs") extend Test
-  lazy val Db2Test: Configuration = config("db2") extend Test
   lazy val SqlServerTest: Configuration = config("sqlserver") extend Test
 
   def testName(name: String): String = name.substring(name.lastIndexOf('.') + 1)
 
   def allDbsFilter(name: String): Boolean = dbPrefixes.exists(p => testName(name) startsWith p)
 
-  def db2Filter(name: String): Boolean = db2Prefix.exists(p => testName(name) startsWith p)
-
   def sqlServerFilter(name: String): Boolean = sqlServerPrefix.exists(p => testName(name) startsWith p)
 
-  def baseFilter(name: String): Boolean = !allDbsFilter(name) && !db2Filter(name) && !sqlServerFilter(name)
+  def baseFilter(name: String): Boolean = !allDbsFilter(name) && !sqlServerFilter(name)
 
   def getSlickDependency(slickComponent: String, version: String): ModuleID = {
     "com.typesafe.slick" %
     (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
-    (if(version.startsWith("2.10")) {"3.1.1"} else {"3.3.2"})
+    (
+      if(version.startsWith("2.10")) {
+        "3.1.1"
+      } else if(version.startsWith("2.11")) {
+        "3.3.3"
+      } else {
+        "3.5.0-M4"
+      }
+    )
   }
 }
