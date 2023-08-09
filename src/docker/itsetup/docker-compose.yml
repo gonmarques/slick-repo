@@ -20,25 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-version: '3.3'
+version: '3.2'
 services:
   mysql:
-    image: mysql/mysql
+    image: mysql:5.7.43
     ports:
       - "22222:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=SLICKREPO
   oracle:
-    image: oracle/database:11.2.0.2-xe
+    image: gvenzl/oracle-xe:11
     shm_size: '1gb'
     ports:
       - "22223:1521"
     environment:
-      - ORACLE_PWD=oracle
+      - ORACLE_PASSWORD=oracle
   postgres:
-    image: postgres/postgres
+    image: postgres:9.6.0
     ports:
       - "22225:5432"
     environment:
       - POSTGRES_PASSWORD=123456
+  db2:
+    image: db2/db2
+    ports:
+      - "22224:50000"
+    environment:
+      - DB2INST1_PASSWORD=345TrEdcvb
+      - LICENSE=accept
+    command: ./start.sh

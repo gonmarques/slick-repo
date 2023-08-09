@@ -1,4 +1,5 @@
 /.idea/
 target/
 slick-repo.iml
-src/docker/oracle-build/docker-images/
+derbyDB/
+derby.log
