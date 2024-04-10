@@ -170,7 +170,7 @@ object Build extends Build {
       } else if(version.startsWith("2.11")) {
         "3.3.3"
       } else {
-        "3.5.0-M4"
+        "3.5.0"
       }
     )
   }
