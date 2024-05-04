@@ -30,7 +30,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends Build {
 
-  val dependencyResolvers = Seq("Typesafe Maven Repository" at "http://repo.typesafe.com/typesafe/maven-releases/")
+  val dependencyResolvers = Seq("Typesafe Maven Repository" at "https://repo.typesafe.com/typesafe/maven-releases/")
 
   val dependencies = Seq(
     "org.scalatest" %% "scalatest" % "3.0.8" % "test",
@@ -52,10 +52,10 @@ object Build extends Build {
 
         name := "slick-repo",
         description := "CRUD Repositories for Slick based persistence Scala projects",
-        version := "1.7.2-SNAPSHOT",
+        version := "1.8.1",
 
-        scalaVersion := "2.12.6",
-        crossScalaVersions := Seq("2.13.11", "2.12.6", "2.11.12", "2.10.7"),
+        scalaVersion := "2.13.11",
+        crossScalaVersions := Seq("2.13.11", "2.12.6", "2.11.12"),
 
         libraryDependencies ++= dependencies,
         libraryDependencies <++= scalaVersion (
@@ -63,7 +63,6 @@ object Build extends Build {
             getSlickDependency("slick", version),
             getSlickDependency("slick-hikaricp", version) % "test"
           ) ++
-          (if (version.startsWith("2.10")) Seq("com.typesafe.slick" %% "slick-extensions" % "3.1.0" % "test") else Seq.empty) ++
           Seq("org.scala-lang" % "scala-reflect" % version)
         ),
 
@@ -128,6 +127,10 @@ object Build extends Build {
               <name>George</name>
               <url>https://github.com/giannoug</url>
             </contributor>
+            <contributor>
+              <name>Andy Czerwonka</name>
+              <url>https://github.com/andyczerwonka</url>
+            </contributor>
           </contributors>
           <scm>
             <url>https://github.com/gonmarques/slick-repo.git</url>
@@ -165,12 +168,10 @@ object Build extends Build {
     "com.typesafe.slick" %
     (slickComponent + "_" + version.substring(0, version.lastIndexOf('.'))) %
     (
-      if(version.startsWith("2.10")) {
-        "3.1.1"
-      } else if(version.startsWith("2.11")) {
+      if(version.startsWith("2.11")) {
         "3.3.3"
       } else {
-        "3.5.0-M4"
+        "3.5.1"
       }
     )
   }
