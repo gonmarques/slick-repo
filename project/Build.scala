@@ -26,7 +26,6 @@ import sbt.Keys._
 import sbt._
 import scoverage.ScoverageKeys._
 import org.scoverage.coveralls.Imports.CoverallsKeys._
-import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends Build {
 
@@ -52,7 +51,7 @@ object Build extends Build {
 
         name := "slick-repo",
         description := "CRUD Repositories for Slick based persistence Scala projects",
-        version := "1.8.1",
+        version := "1.8.2",
 
         scalaVersion := "2.13.11",
         crossScalaVersions := Seq("2.13.11", "2.12.6", "2.11.12"),
@@ -81,15 +80,9 @@ object Build extends Build {
         organization:= "com.byteslounge",
         pomIncludeRepository := { _ => false },
         publishArtifact in Test := false,
-        publishTo := {
-          val nexus = "https://oss.sonatype.org/"
-          if (isSnapshot.value)
-            Some("snapshots" at nexus + "content/repositories/snapshots")
-          else
-            Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-        },
-        credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-        useGpg := true,
+        publishTo := Some("Maven Central" at
+          "https://central.sonatype.com/api/v1/publisher/upload"),
+        //credentials += Credentials(Path.userHome / ".sbt" / "credentials"),
         pomExtra :=
           <url>https://github.com/gonmarques/slick-repo</url>
           <inceptionYear>2016</inceptionYear>
